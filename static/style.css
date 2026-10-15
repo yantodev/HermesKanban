@@ -32,6 +32,20 @@ textarea { width: 100%; resize: vertical; }
 .health-panel small { display: block; max-width: 300px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-family: var(--font-mono); }
 .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 0 6px rgba(182,92,0,.12); }
 .dot.ok { background: var(--success); box-shadow: 0 0 0 6px rgba(10,127,66,.12); }
+.board-cards-section { margin-top: 16px; }
+.section-heading { display: flex; justify-content: space-between; gap: 14px; align-items: end; margin-bottom: 10px; }
+.section-heading h2 { font-size: 22px; letter-spacing: -0.03em; }
+.board-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.board-card { appearance: none; display: grid; gap: 8px; min-width: 0; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface); color: var(--ink); text-align: left; box-shadow: var(--shadow-soft); cursor: pointer; transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.board-card:hover, .board-card:focus-visible { transform: translateY(-2px); border-color: var(--link); box-shadow: var(--card-hover-shadow); outline: none; }
+.board-card.is-active { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent), var(--shadow-soft); }
+.board-card-top, .board-card-footer { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.board-card-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--primary); color: var(--primary-ink); font-size: 22px; }
+.board-card-active, .board-card-open { color: var(--link); font-size: 12px; font-weight: 800; }
+.board-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; }
+.board-card-slug { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
+.board-card-description { min-height: 34px; color: var(--muted); font-size: 13px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.board-card-total { color: var(--muted); font-size: 12px; font-weight: 700; }
 .toolbar { margin-top: 16px; border-radius: var(--radius-lg); padding: 14px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .filters { flex: 1; min-width: 0; }
 .filters #searchInput { min-width: min(360px, 100%); flex: 1; }

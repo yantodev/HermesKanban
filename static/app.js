@@ -10,6 +10,57 @@ import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=
 import { closeDrawer } from './drawer.js?v=20260508-02';
 import { state, setBoard, toast } from './state.js?v=20260508-02';
 
+function renderBoardCards(data) {
+  const root = document.getElementById('boardCards');
+  if (!root) return;
+  const boards = Array.isArray(data?.boards) ? data.boards : [];
+  const count = document.getElementById('boardCardsCount');
+  if (count) count.textContent = `${boards.length} ${t('boardsCount')}`;
+  root.replaceChildren();
+
+  for (const board of boards) {
+    const card = document.createElement('button');
+    const active = board.slug === state.board;
+    card.type = 'button';
+    card.className = `board-card${active ? ' is-active' : ''}`;
+    card.setAttribute('data-board-card', board.slug);
+    card.setAttribute('aria-pressed', active ? 'true' : 'false');
+    card.innerHTML = `
+      <span class="board-card-top">
+        <span class="board-card-icon" aria-hidden="true"></span>
+        ${active ? `<span class="board-card-active">${t('activeBoard')}</span>` : ''}
+      </span>
+      <strong class="board-card-name"></strong>
+      <code class="board-card-slug"></code>
+      <span class="board-card-description"></span>
+      <span class="board-card-footer">
+        <span class="board-card-total"></span>
+        <span class="board-card-open">${t('openBoard')} →</span>
+      </span>`;
+    card.querySelector('.board-card-name').textContent = board.name || board.slug;
+    card.querySelector('.board-card-icon').textContent = board.icon || '▦';
+    card.querySelector('.board-card-slug').textContent = board.slug;
+    card.querySelector('.board-card-description').textContent = board.description || '';
+    card.querySelector('.board-card-total').textContent = `${board.total || 0} ${t('boardTasks')}`;
+    card.addEventListener('click', () => selectBoard(board.slug));
+    root.appendChild(card);
+  }
+
+  if (!boards.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = t('empty');
+    root.appendChild(empty);
+  }
+}
+
+async function selectBoard(slug) {
+  if (!slug) return;
+  setBoard(slug);
+  await api.switchBoard(slug);
+  await load();
+}
+
 async function loadBoards() {
   const data = await api.boards();
   const select = document.getElementById('boardSelect');
@@ -22,6 +73,7 @@ async function loadBoards() {
   }
   if (!data.boards.find(b => b.slug === state.board)) setBoard(data.current || 'default');
   select.value = state.board;
+  renderBoardCards(data);
 }
 
 async function loadStatus() {

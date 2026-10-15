@@ -402,3 +402,20 @@ def test_blueprint_dependency_ports_create_links_from_board():
     assert '.dependency-preview-edge' in style
     for key in ['parentPortHint', 'childPortHint', 'linkCreatedToast', 'linkInvalidToast']:
         assert key in i18n
+
+
+def test_dashboard_renders_board_cards_for_main_menu():
+    root = Path(__file__).resolve().parents[1]
+    index = (root / 'static' / 'index.html').read_text(encoding='utf-8')
+    app = (root / 'static' / 'app.js').read_text(encoding='utf-8')
+    style = (root / 'static' / 'style.css').read_text(encoding='utf-8')
+    i18n = (root / 'static' / 'i18n.js').read_text(encoding='utf-8')
+
+    assert 'id="boardCards"' in index
+    assert 'renderBoardCards' in app
+    assert 'data-board-card' in app
+    assert 'selectBoard(board.slug)' in app
+    assert '.board-card' in style
+    assert '.board-cards' in style
+    for key in ['boardsOverview', 'boardsCount', 'boardTasks', 'activeBoard', 'openBoard']:
+        assert key in i18n
