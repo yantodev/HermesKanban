@@ -107,9 +107,36 @@ if sys.version_info < (3, 11):
 PY
 }
 
+resolve_uv() {
+  local candidate
+
+  if [[ -n "${UV:-}" ]]; then
+    if command -v "$UV" >/dev/null 2>&1; then
+      command -v "$UV"
+    elif [[ -x "$UV" ]]; then
+      printf '%s\n' "$UV"
+    fi
+    return
+  fi
+
+  if command -v uv >/dev/null 2>&1; then
+    command -v uv
+    return
+  fi
+
+  for candidate in "$REAL_HOME_DEFAULT"/.hermes/tools/uv-*/uv; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+}
+
 check_uv() {
-  if ! command -v uv >/dev/null 2>&1; then
-    echo "uv not found. Install uv first: https://docs.astral.sh/uv/" >&2
+  [[ "$SKIP_UV_SYNC" == "1" ]] && return
+  UV_BIN="$(resolve_uv)"
+  if [[ -z "$UV_BIN" ]]; then
+    echo "uv not found. Install uv or set UV=/absolute/path/to/uv." >&2
     exit 1
   fi
 }
@@ -140,6 +167,11 @@ install_wrapper() {
     log "DRY RUN: install $source -> $target"
     return
   fi
+  if [[ -L "$target" && "$(readlink "$target" 2>/dev/null || true)" == "$source" ]]; then
+    chmod +x "$source"
+    log "Wrapper already installed: $target"
+    return
+  fi
   ln -sfn "$source" "$target"
   chmod +x "$source"
   log "Installed wrapper: $target"
@@ -152,10 +184,10 @@ run_uv_sync() {
   fi
   log "Running uv sync in $APP_DIR"
   if [[ "$DRY_RUN" == "1" ]]; then
-    log "DRY RUN: cd $APP_DIR && uv sync"
+    log "DRY RUN: cd $APP_DIR && $UV_BIN sync"
     return
   fi
-  (cd "$APP_DIR" && uv sync)
+  (cd "$APP_DIR" && "$UV_BIN" sync)
 }
 
 while [[ $# -gt 0 ]]; do

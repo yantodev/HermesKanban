@@ -103,13 +103,38 @@ resolve_app_dir() {
   die "Cannot locate HermesKanban checkout. Set HERMES_KANBAN_WEBUI_APP_DIR in $ENV_FILE."
 }
 
+resolve_uv() {
+  local candidate
+
+  if [[ -n "${UV:-}" ]]; then
+    if command -v "$UV" >/dev/null 2>&1; then
+      command -v "$UV"
+    elif [[ -x "$UV" ]]; then
+      printf '%s\n' "$UV"
+    fi
+    return
+  fi
+
+  if command -v uv >/dev/null 2>&1; then
+    command -v uv
+    return
+  fi
+
+  for candidate in "$REAL_HOME"/.hermes/tools/uv-*/uv; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+}
+
 normalize_runtime_env() {
   HOST="${HERMES_KANBAN_WEBUI_HOST:-${HERMES_KANBAN_HOST:-127.0.0.1}}"
   PORT="${HERMES_KANBAN_WEBUI_PORT:-${HERMES_KANBAN_PORT:-8790}}"
   STATE_DIR="${HERMES_KANBAN_WEBUI_STATE:-$REAL_HOME/.hermes/kanban-webui}"
   LOG_PATH="${HERMES_KANBAN_WEBUI_LOG:-$REAL_HOME/.hermes/logs/kanban-webui.log}"
   PID_FILE="$STATE_DIR/kanban-webui.pid"
-  UV_BIN="${UV:-$(command -v uv || true)}"
+  UV_BIN="$(resolve_uv)"
   APP_DIR="$(resolve_app_dir)"
 
   export HERMES_REAL_HOME="${HERMES_REAL_HOME:-$REAL_HOME}"

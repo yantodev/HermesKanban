@@ -3,6 +3,13 @@ function tokenHeaders() {
   return token ? { 'X-Kanban-Token': token } : {};
 }
 
+function promptForToken() {
+  const entered = window.prompt('Kanban API token:');
+  const token = (entered || '').trim();
+  if (token) localStorage.setItem('kanbanToken', token);
+  return token;
+}
+
 function errorMessage(data, fallback) {
   const message = data.detail || data.error || fallback;
   if (Array.isArray(message)) return message.map(x => x.msg || JSON.stringify(x)).join(', ');
@@ -11,16 +18,20 @@ function errorMessage(data, fallback) {
 }
 
 export async function request(path, options = {}) {
-  const headers = { ...(options.headers || {}), ...tokenHeaders() };
-  let body = options.body;
+  const { _authRetry = false, ...requestOptions } = options;
+  const headers = { ...(requestOptions.headers || {}), ...tokenHeaders() };
+  let body = requestOptions.body;
   if (body && typeof body !== 'string' && !(body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(body);
   }
-  const res = await fetch(path, { ...options, headers, body });
+  const res = await fetch(path, { ...requestOptions, headers, body });
   const text = await res.text();
   let data = {};
   try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+  if (res.status === 401 && !_authRetry && path.startsWith('/api/')) {
+    if (promptForToken()) return request(path, { ...options, _authRetry: true });
+  }
   if (!res.ok) throw new Error(errorMessage(data, res.statusText));
   return data;
 }

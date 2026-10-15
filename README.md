@@ -67,7 +67,7 @@ Kanban data:
   parent-child dependencies.
 - Workflow draft storage, board-scoped draft APIs, immutable applied drafts, and
   backend guards that prevent non-applyable AI proposals from being applied.
-- Korean UI by default with an English toggle, plus light/dark themes.
+- Indonesian UI by default with an English toggle, plus light/dark themes.
 - Optional token auth for `/api/*` endpoints.
 - Loopback-first runtime with Host-header and cross-origin mutation checks for
   safer localhost/Tailscale usage.
@@ -78,7 +78,7 @@ Kanban data:
 ## Requirements
 
 - Python 3.11+
-- [`uv`](https://docs.astral.sh/uv/) on `PATH`
+- [`uv`](https://docs.astral.sh/uv/) on `PATH` or in Hermes' managed tools directory
 - A Hermes Agent source checkout or installation that exposes
   `hermes_cli.kanban_db`
 
@@ -181,8 +181,8 @@ scripts/hermes-kanban-webui-stop
 If you copy only those legacy scripts to another directory such as
 `~/.local/bin`, also set `HERMES_KANBAN_WEBUI_APP_DIR`.
 
-The start script uses `uv` from `PATH`, or `UV=/absolute/path/to/uv` if you need
-to override it.
+The start script uses `uv` from `PATH`, Hermes' managed tools directory, or
+`UV=/absolute/path/to/uv` if you need to override it.
 
 ## In-app self-update
 

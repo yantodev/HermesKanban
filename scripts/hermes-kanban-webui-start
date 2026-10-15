@@ -34,10 +34,36 @@ fi
 STATE_DIR="${HERMES_KANBAN_WEBUI_STATE:-$REAL_HOME/.hermes/kanban-webui}"
 LOG_PATH="${HERMES_KANBAN_WEBUI_LOG:-$REAL_HOME/.hermes/logs/kanban-webui.log}"
 PID_FILE="$STATE_DIR/kanban-webui.pid"
-UV_BIN="${UV:-$(command -v uv || true)}"
+
+resolve_uv() {
+  local candidate
+
+  if [[ -n "${UV:-}" ]]; then
+    if command -v "$UV" >/dev/null 2>&1; then
+      command -v "$UV"
+    elif [[ -x "$UV" ]]; then
+      printf '%s\n' "$UV"
+    fi
+    return
+  fi
+
+  if command -v uv >/dev/null 2>&1; then
+    command -v uv
+    return
+  fi
+
+  for candidate in "$REAL_HOME"/.hermes/tools/uv-*/uv; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+}
+
+UV_BIN="$(resolve_uv)"
 
 if [[ -z "$UV_BIN" ]]; then
-  echo "uv not found. Install uv or set UV=/path/to/uv." >&2
+  echo "uv not found. Install uv or set UV=/absolute/path/to/uv." >&2
   exit 1
 fi
 if [[ ! -f "$APP_DIR/server.py" ]]; then

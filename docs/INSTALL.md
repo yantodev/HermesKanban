@@ -8,7 +8,7 @@ new Hermes profile, dispatcher, or database.
 
 - Linux, macOS, or WSL
 - Python 3.11+
-- `uv` on `PATH`
+- `uv` on `PATH` or in Hermes' managed tools directory
 - Hermes Agent installed, or a Hermes Agent checkout at `~/.hermes/hermes-agent`
 - For AI Workflow Designer: at least one usable Hermes profile that can run
   `hermes -p <profile> chat` for JSON-only planning

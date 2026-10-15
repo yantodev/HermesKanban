@@ -20,8 +20,9 @@ Ensure `~/.local/bin` is on `PATH`, or run the repo-local wrapper directly:
 
 ## `uv not found`
 
-Install `uv`, or set `UV=/absolute/path/to/uv` in
-`~/.hermes/kanban-webui.env`.
+The installer and lifecycle commands check `PATH`, then Hermes' managed tools
+directory (`~/.hermes/tools/uv-*/uv`). If `uv` is installed elsewhere, set
+`UV=/absolute/path/to/uv` in `~/.hermes/kanban-webui.env`.
 
 ## `Hermes not found` or `hermes_cli.kanban_db` import errors
 
@@ -122,6 +123,20 @@ Authorization: Bearer <token>
 ```
 
 Tokens are not accepted in query strings.
+
+The browser UI prompts for the token automatically after the first `401`.
+Enter the value from the env file when prompted.
+
+For the browser UI, copy the token from `~/.hermes/kanban-webui.env`, open the
+browser developer console on the WebUI page, and run:
+
+```js
+localStorage.setItem('kanbanToken', '<token>');
+location.reload();
+```
+
+For localhost-only use without authentication, clear
+`HERMES_KANBAN_WEBUI_TOKEN` in the env file and restart the service.
 
 ## systemd commands fail on WSL
 
