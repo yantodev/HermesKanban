@@ -88,7 +88,7 @@ export async function load() {
   state.latestEventId = data.latest_event_id;
   renderAssigneeControls(data);
   document.getElementById('boardTitle').textContent = data.board_meta.name || data.board;
-  document.getElementById('boardDescription').textContent = data.board_meta.description || 'Hermes CLI와 같은 DB를 사용하는 전용 칸반 WebUI';
+  document.getElementById('boardDescription').textContent = data.board_meta.description || 'WebUI Kanban khusus yang menggunakan basis data yang sama dengan Hermes CLI';
   renderKpis(data);
   renderBoard(data);
   await refreshOperationsPanel();
@@ -97,7 +97,7 @@ export async function load() {
 
 function setupControls() {
   document.getElementById('refreshBtn').addEventListener('click', load);
-  document.getElementById('langToggle').addEventListener('click', () => { setLang(lang() === 'ko' ? 'en' : 'ko'); updateThemeToggleLabel(); load(); });
+  document.getElementById('langToggle').addEventListener('click', () => { setLang(lang() === 'id' ? 'en' : 'id'); updateThemeToggleLabel(); load(); });
   document.getElementById('boardSelect').addEventListener('change', async ev => {
     setBoard(ev.target.value);
     await api.switchBoard(state.board);

@@ -1,22 +1,4 @@
 export const labels = {
-  ko: {
-    subtitle: '읽기 쉬운 작업 운영 보드', newBoard: '보드 추가', refresh: '새로고침', themeDark: '다크로 전환', themeLight: '라이트로 전환', quickTitle: '작업 제목을 입력하고 Enter',
-    taskCreate: 'Task 추가', taskCreateHint: '필요할 때만 제목, 설명, 담당 프로필, 상태를 입력해 새 task를 생성합니다.', taskTitlePlaceholder: '작업 제목', taskBodyPlaceholder: '작업 설명/지시사항(선택)',
-    assignee: '담당 프로필', create: '추가', created: '생성일', createdToast: '생성됨', search: '작업 제목/내용/ID 검색', allAssignees: '전체 담당자', unassigned: '미지정', profileMissing: '담당 프로필 미지정', profileMissingShort: '프로필 필요', agentProfile: '프로필', manualAssignee: '수동', showArchived: '보관함 표시',
-    bulkCreate: '일괄 추가', boardName: '보드 이름', description: '설명', cancel: '취소', bulkHint: '한 줄에 작업 하나씩 입력하세요.', loading: '불러오는 중…',
-    workflow: 'Workflow', workflowCreate: 'AI Workflow 생성', workflowDesignerHint: '프롬프트와 첨부파일로 작업 DAG를 설계한 뒤 승인 시 실제 Kanban task로 적용합니다.', workflowPrompt: 'Workflow 프롬프트', workflowPromptPlaceholder: '목표, 산출물, 제약, 원하는 단계 수를 설명하세요', workflowPlannerProfile: 'Planner 프로필', workflowAttachments: '첨부파일', workflowPlan: '설계', workflowPlanning: 'AI가 workflow 초안을 설계하는 중…', workflowRevise: '수정', workflowRevisionPlaceholder: '변경할 단계/담당 프로필/의존성을 설명하세요', workflowApply: '적용', workflowDraftStatus: 'Draft 상태', workflowDraftEmpty: '프롬프트를 입력하고 설계를 누르면 초안이 표시됩니다.', workflowNotApplyable: '아직 적용할 수 없는 초안입니다. 질문을 해결한 뒤 수정 요청을 보내세요.', workflowInstance: 'Instance ID', workflowStep: '현재 단계', workflowSteps: '단계',
-    updateAvailable: '새 업데이트 사용 가능', updateTitle: 'KanbanWebUI 업데이트', updateApply: '업데이트 후 재시작', updateLater: '나중에', updateChecking: '업데이트 상태 확인 중…', updateRestarting: '업데이트 적용 중… 서버가 재시작되면 자동으로 새로고침합니다.', updateBlocked: '자동 업데이트 불가', updateNoCommits: '커밋 목록 없음',
-    triage: '분류', todo: '대기', ready: '준비', running: '실행중', blocked: '막힘', done: '완료', archived: '보관',
-    title: '제목', body: '본문', noDescription: '설명 없음', priority: '우선순위', status: '상태', workspace: '워크스페이스', createdBy: '생성자',
-    comments: '댓글', events: '이벤트', runs: '런', monitor: 'Live Run Monitor', context: '컨텍스트', log: '로그', workerLog: 'Worker 로그',
-    dependencies: '의존성', parents: '부모', children: '자식', parent: '부모', child: '자식', chooseTask: '작업 선택', none: '없음', remove: '삭제',
-    parentPortHint: '왼쪽 부모 포트: 다른 task의 오른쪽 자식 포트로 드래그해 부모로 연결', childPortHint: '오른쪽 자식 포트: 다른 task의 왼쪽 부모 포트로 드래그해 자식으로 연결', linkCreatedToast: '부모/자식 연결됨', linkInvalidToast: '왼쪽 부모 포트와 오른쪽 자식 포트만 연결할 수 있습니다.', linkSameTaskToast: '같은 task끼리는 연결할 수 없습니다.',
-    dependencyViewFocus: '관계선: 선택 중심', dependencyViewAll: '관계선: 전체', dependencyViewBlocked: '관계선: 막힘', dependencyViewOff: '관계선: 숨김',
-    dependencyMap: '관계 지도', currentTask: '현재 작업', noDependencies: '연결된 부모/자식 없음',
-    notifyHomeChannels: '홈 채널 알림', noHomeChannels: '설정된 홈 채널 없음', noWorkerLog: 'worker 로그 없음',
-    complete: '완료', block: '막기', unblock: '해제', archive: '보관', save: '저장', close: '닫기', addComment: '댓글 추가',
-    operations: 'Operations', opsOverview: 'Operations 개요', opsRunning: '실행 중', opsHeartbeatOverdue: 'Heartbeat 지연', opsRetryQueue: 'Retry queue', opsBlockedAfterRetries: '재시도 후 막힘', opsRecentFailures: '최근 실패', opsNoRunning: '실행 중인 작업 없음', opsNoRetry: '재시도 후보 없음', opsNoBlockedAfterRetries: '재시도 후 막힌 작업 없음', opsNoFailures: '최근 실패 이벤트 없음', opsEligibleNow: '지금 가능', opsEstimatedWait: '예상 대기', opsAttempt: '시도', opsLastError: '마지막 오류', opsOpenTask: '열기', opsEstimatedBackoffAdvisory: '표시된 backoff는 현재 실패 정보로 계산한 참고용 추정치이며 dispatcher가 아직 강제하지 않습니다.', empty: '없음'
-  },
   en: {
     subtitle: 'Readable operations board', newBoard: 'New board', refresh: 'Refresh', themeDark: 'Switch dark', themeLight: 'Switch light', quickTitle: 'Type a task title and press Enter',
     taskCreate: 'Create task', taskCreateHint: 'Open this dialog only when you need to set title, details, agent profile, and status for a new task.', taskTitlePlaceholder: 'Task title', taskBodyPlaceholder: 'Task details/instructions (optional)',
@@ -34,19 +16,38 @@ export const labels = {
     notifyHomeChannels: 'Notify home channels', noHomeChannels: 'No home channels configured', noWorkerLog: 'No worker log yet',
     complete: 'Complete', block: 'Block', unblock: 'Unblock', archive: 'Archive', save: 'Save', close: 'Close', addComment: 'Add comment',
     operations: 'Operations', opsOverview: 'Operations overview', opsRunning: 'Running now', opsHeartbeatOverdue: 'Heartbeat overdue', opsRetryQueue: 'Retry queue', opsBlockedAfterRetries: 'Blocked after retries', opsRecentFailures: 'Recent failures', opsNoRunning: 'No running tasks', opsNoRetry: 'No retry candidates', opsNoBlockedAfterRetries: 'No tasks blocked after retries', opsNoFailures: 'No recent failure events', opsEligibleNow: 'Eligible now', opsEstimatedWait: 'Estimated wait', opsAttempt: 'Attempt', opsLastError: 'Last error', opsOpenTask: 'Open task', opsEstimatedBackoffAdvisory: 'Estimated backoff is advisory until dispatcher-level backoff is implemented.', empty: 'None'
+  },
+  id: {
+    subtitle: 'Papan operasi yang mudah dibaca', newBoard: 'Tambah papan', refresh: 'Muat ulang', themeDark: 'Beralih ke tema gelap', themeLight: 'Beralih ke tema terang', quickTitle: 'Ketik judul tugas lalu tekan Enter',
+    taskCreate: 'Buat tugas', taskCreateHint: 'Buka dialog ini hanya jika Anda perlu menetapkan judul, detail, profil agen, dan status untuk tugas baru.', taskTitlePlaceholder: 'Judul tugas', taskBodyPlaceholder: 'Detail/instruksi tugas (opsional)',
+    assignee: 'Profil agen', create: 'Buat', created: 'Dibuat', createdToast: 'Berhasil dibuat', search: 'Cari judul/isi/ID', allAssignees: 'Semua penanggung jawab', unassigned: 'Belum ditugaskan', profileMissing: 'Profil agen belum ditentukan', profileMissingShort: 'Profil diperlukan', agentProfile: 'profil', manualAssignee: 'manual', showArchived: 'Tampilkan arsip',
+    bulkCreate: 'Tambah massal', boardName: 'Nama papan', description: 'Deskripsi', cancel: 'Batal', bulkHint: 'Masukkan satu tugas per baris.', loading: 'Memuat…',
+    workflow: 'Alur kerja', workflowCreate: 'Buat alur kerja AI', workflowDesignerHint: 'Rancang DAG tugas dari prompt dan lampiran, lalu setujui untuk menerapkannya sebagai tugas Kanban nyata.', workflowPrompt: 'Prompt alur kerja', workflowPromptPlaceholder: 'Jelaskan tujuan, hasil, batasan, dan jumlah langkah yang diinginkan', workflowPlannerProfile: 'Profil perencana', workflowAttachments: 'Lampiran', workflowPlan: 'Rancang', workflowPlanning: 'AI sedang merancang draf alur kerja…', workflowRevise: 'Revisi', workflowRevisionPlaceholder: 'Jelaskan perubahan langkah/profil/dependensi', workflowApply: 'Terapkan', workflowDraftStatus: 'Status draf', workflowDraftEmpty: 'Masukkan prompt lalu klik Rancang untuk melihat pratinjau draf.', workflowNotApplyable: 'Draf ini belum dapat diterapkan. Selesaikan pertanyaan lalu kirim revisi.', workflowInstance: 'ID instans', workflowStep: 'Langkah saat ini', workflowSteps: 'langkah',
+    updateAvailable: 'Pembaruan tersedia', updateTitle: 'Pembaruan KanbanWebUI', updateApply: 'Perbarui dan mulai ulang', updateLater: 'Nanti', updateChecking: 'Memeriksa status pembaruan…', updateRestarting: 'Menerapkan pembaruan… halaman ini akan dimuat ulang setelah server dimulai ulang.', updateBlocked: 'Pembaruan otomatis diblokir', updateNoCommits: 'Tidak ada detail commit',
+    triage: 'Triage', todo: 'Menunggu', ready: 'Siap', running: 'Berjalan', blocked: 'Terblokir', done: 'Selesai', archived: 'Diarsipkan',
+    title: 'Judul', body: 'Isi', noDescription: 'Tidak ada deskripsi', priority: 'Prioritas', status: 'Status', workspace: 'Ruang kerja', createdBy: 'Dibuat oleh',
+    comments: 'Komentar', events: 'Peristiwa', runs: 'Eksekusi', monitor: 'Monitor eksekusi langsung', context: 'Konteks', log: 'Log', workerLog: 'Log worker',
+    dependencies: 'Dependensi', parents: 'Induk', children: 'Anak', parent: 'Induk', child: 'Anak', chooseTask: 'Pilih tugas', none: 'Tidak ada', remove: 'Hapus',
+    parentPortHint: 'Port induk kiri: seret ke port anak kanan tugas lain untuk menghubungkan sebagai induk', childPortHint: 'Port anak kanan: seret ke port induk kiri tugas lain untuk menghubungkan sebagai anak', linkCreatedToast: 'Induk/anak terhubung', linkInvalidToast: 'Hubungkan satu port induk kiri dengan satu port anak kanan.', linkSameTaskToast: 'Tugas tidak dapat terhubung ke dirinya sendiri.',
+    dependencyViewFocus: 'Garis: Fokus', dependencyViewAll: 'Garis: Semua', dependencyViewBlocked: 'Garis: Terblokir', dependencyViewOff: 'Garis: Tersembunyi',
+    dependencyMap: 'Peta dependensi', currentTask: 'Tugas saat ini', noDependencies: 'Tidak ada tautan induk/anak',
+    notifyHomeChannels: 'Beri tahu kanal utama', noHomeChannels: 'Belum ada kanal utama yang dikonfigurasi', noWorkerLog: 'Belum ada log worker',
+    complete: 'Selesai', block: 'Blokir', unblock: 'Buka blokir', archive: 'Arsipkan', save: 'Simpan', close: 'Tutup', addComment: 'Tambah komentar',
+    operations: 'Operasi', opsOverview: 'Ringkasan operasi', opsRunning: 'Sedang berjalan', opsHeartbeatOverdue: 'Heartbeat terlambat', opsRetryQueue: 'Antrean percobaan ulang', opsBlockedAfterRetries: 'Terblokir setelah percobaan ulang', opsRecentFailures: 'Kegagalan terbaru', opsNoRunning: 'Tidak ada tugas yang berjalan', opsNoRetry: 'Tidak ada kandidat percobaan ulang', opsNoBlockedAfterRetries: 'Tidak ada tugas yang terblokir setelah percobaan ulang', opsNoFailures: 'Tidak ada peristiwa kegagalan terbaru', opsEligibleNow: 'Memenuhi syarat sekarang', opsEstimatedWait: 'Perkiraan waktu tunggu', opsAttempt: 'Percobaan', opsLastError: 'Kesalahan terakhir', opsOpenTask: 'Buka tugas', opsEstimatedBackoffAdvisory: 'Perkiraan backoff hanya sebagai referensi sampai backoff tingkat dispatcher diterapkan.', empty: 'Tidak ada'
   }
 };
 
-let currentLang = localStorage.getItem('kanbanLang') || 'ko';
+const storedLang = localStorage.getItem('kanbanLang');
+let currentLang = storedLang === 'en' ? 'en' : 'id';
 
 export function lang() { return currentLang; }
-export function setLang(next) { currentLang = next === 'en' ? 'en' : 'ko'; localStorage.setItem('kanbanLang', currentLang); applyI18n(); }
-export function t(key) { return (labels[currentLang] && labels[currentLang][key]) || labels.ko[key] || key; }
+export function setLang(next) { currentLang = next === 'en' ? 'en' : 'id'; localStorage.setItem('kanbanLang', currentLang); applyI18n(); }
+export function t(key) { return (labels[currentLang] && labels[currentLang][key]) || labels.id[key] || key; }
 
 export function applyI18n(root = document) {
   root.documentElement?.setAttribute('lang', currentLang);
   root.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   root.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   const toggle = root.getElementById?.('langToggle');
-  if (toggle) toggle.textContent = currentLang === 'ko' ? 'EN' : 'KO';
+  if (toggle) toggle.textContent = currentLang === 'id' ? 'EN' : 'ID';
 }
