@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-09T16:49:22.956Z",
+        "reason": "Project DESIGN.md explicitly specifies Inter for UI"
+      }
+    ]
+  }
+}

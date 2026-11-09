@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from html.parser import HTMLParser
 import shutil
 import subprocess
 
@@ -18,6 +19,43 @@ def test_static_shell_contains_required_ui_contracts(client):
     root = Path(__file__).resolve().parents[1]
     for rel in ['static/app.js', 'static/board.js', 'static/drawer.js', 'static/monitor.js', 'static/i18n.js', 'static/update.js', 'static/design-tokens.css', 'DESIGN.md']:
         assert (root / rel).is_file(), rel
+
+
+def test_home_keeps_secondary_controls_in_closed_disclosures(client):
+    class ControlsParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+            self.containers = {}
+            self.details_open = {}
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if tag == 'details':
+                self.details_open[attrs.get('class', '')] = 'open' in attrs
+            if 'id' in attrs:
+                self.containers[attrs['id']] = list(self.stack)
+            if tag not in {'input', 'link', 'meta', 'br', 'hr', 'img'}:
+                self.stack.append((tag, attrs))
+
+        def handle_endtag(self, tag):
+            for index in range(len(self.stack) - 1, -1, -1):
+                if self.stack[index][0] == tag:
+                    del self.stack[index:]
+                    break
+
+    parser = ControlsParser()
+    parser.feed(client.get('/').text)
+    for control, menu_class in {
+        'assigneeFilter': 'filters-menu', 'dependencyView': 'filters-menu',
+        'archivedToggle': 'filters-menu', 'workflowBtn': 'actions-menu',
+        'bulkBtn': 'actions-menu', 'themeToggle': 'settings-menu',
+        'boardCards': 'board-overview', 'kpiRow': 'board-overview',
+    }.items():
+        assert any(menu_class in attrs.get('class', '').split() for _, attrs in parser.containers[control])
+    assert not any(parser.details_open.values())
+    for control in ['taskCreateBtn', 'searchInput', 'opsToggleBtn', 'boardSelect']:
+        assert all(tag != 'details' for tag, _ in parser.containers[control])
 
 
 def test_app_update_static_contract():
@@ -40,7 +78,7 @@ def test_app_update_static_contract():
     ]:
         assert phrase in index
 
-    assert './update.js?v=20261109-review' in app
+    assert './update.js?v=20261109-pagination' in app
     assert 'setupAppUpdatePrompt' in app
     for phrase in ['appUpdateStatus', '/api/app/update-status', 'applyAppUpdate', '/api/app/update']:
         assert phrase in api
@@ -87,6 +125,14 @@ def test_static_javascript_parses():
         subprocess.run([node, '--check', str(path)], check=True, cwd=root)
 
 
+def test_operations_pagination_behaviour():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('node is required for operations pagination checks')
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run([node, '--experimental-default-type=module', 'tests/operations_pagination.mjs'], check=True, cwd=root)
+
+
 def test_dark_mode_static_contract():
     root = Path(__file__).resolve().parents[1]
     index = (root / 'static' / 'index.html').read_text(encoding='utf-8')
@@ -98,9 +144,9 @@ def test_dark_mode_static_contract():
 
     assert 'id="themeToggle"' in index
     assert 'aria-pressed="false"' in index
-    assert 'style.css?v=20261109-review' in index
-    assert 'app.js?v=20261109-review' in index
-    assert './theme.js?v=20261109-review' in app
+    assert 'style.css?v=20261109-pagination' in index
+    assert 'app.js?v=20261109-pagination' in index
+    assert './theme.js?v=20261109-pagination' in app
     assert 'setupThemeToggle' in app
     assert 'updateThemeToggleLabel' in app
     assert 'kanbanTheme' in theme
@@ -247,8 +293,8 @@ def test_unassigned_tasks_are_visually_flagged():
         assert key in i18n
     for css_class in ['.task-card.is-unassigned', '.profile-missing-badge', '.chips .missing-assignee-chip']:
         assert css_class in style
-    assert './board.js?v=20261109-review' in app
-    assert './i18n.js?v=20261109-review' in board
+    assert './board.js?v=20261109-pagination' in app
+    assert './i18n.js?v=20261109-pagination' in board
     for token in ['--warning-soft', '--warning-ring']:
         assert token in tokens
 
@@ -264,7 +310,7 @@ def test_operations_dashboard_static_contract():
 
     for phrase in ['id="opsToggleBtn"', 'id="opsPanel"']:
         assert phrase in index
-    assert './operations.js?v=20261109-review' in app
+    assert './operations.js?v=20261109-pagination' in app
     for phrase in ['opsSummary', '/api/ops/summary']:
         assert phrase in api
     for phrase in ['renderOperationsPanel', 'setupOperationsPanel', 'retry_queue', 'blocked_after_retries', 'openTaskDrawer']:

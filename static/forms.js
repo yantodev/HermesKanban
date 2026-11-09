@@ -1,7 +1,7 @@
-import { api } from './api.js?v=20261109-review';
-import { escapeHtml } from './markdown.js?v=20261109-review';
-import { t } from './i18n.js?v=20261109-review';
-import { state, toast, setBoard } from './state.js?v=20261109-review';
+import { api } from './api.js?v=20261109-pagination';
+import { escapeHtml } from './markdown.js?v=20261109-pagination';
+import { t } from './i18n.js?v=20261109-pagination';
+import { state, toast, setBoard } from './state.js?v=20261109-pagination';
 
 function stepKey(step) {
   return step.step_key || step.key || '';

@@ -1,11 +1,31 @@
-import { api } from './api.js?v=20261109-review';
-import { t } from './i18n.js?v=20261109-review';
-import { escapeHtml } from './markdown.js?v=20261109-review';
-import { openTaskDrawer } from './drawer.js?v=20261109-review';
-import { state, toast } from './state.js?v=20261109-review';
+import { api } from './api.js?v=20261109-pagination';
+import { t } from './i18n.js?v=20261109-pagination';
+import { escapeHtml } from './markdown.js?v=20261109-pagination';
+import { openTaskDrawer } from './drawer.js?v=20261109-pagination';
+import { state, toast } from './state.js?v=20261109-pagination';
 
 function panel() { return document.getElementById('opsPanel'); }
 function toggleButton() { return document.getElementById('opsToggleBtn'); }
+const PAGE_SIZE = 5;
+const pages = { blocked: 0, failures: 0 };
+let pagingBoard = null;
+
+function pageItems(items, key) {
+  const lastPage = Math.max(0, Math.ceil(items.length / PAGE_SIZE) - 1);
+  pages[key] = Math.min(pages[key], lastPage);
+  const start = pages[key] * PAGE_SIZE;
+  return { items: items.slice(start, start + PAGE_SIZE), start, total: items.length, page: pages[key], lastPage };
+}
+
+function pagination(key, page, title) {
+  if (page.total <= PAGE_SIZE) return '';
+  const range = t('opsPageRange').replace('{start}', page.start + 1).replace('{end}', Math.min(page.start + PAGE_SIZE, page.total)).replace('{total}', page.total);
+  return `<nav class="ops-pagination" aria-label="${escapeHtml(title)}">
+    <span aria-live="polite">${escapeHtml(range)}</span>
+    <div><button class="button ghost" type="button" data-ops-page="${key}" data-direction="-1" ${page.page === 0 ? 'disabled' : ''}>${escapeHtml(t('previous'))}</button>
+    <button class="button ghost" type="button" data-ops-page="${key}" data-direction="1" ${page.page === page.lastPage ? 'disabled' : ''}>${escapeHtml(t('next'))}</button></div>
+  </nav>`;
+}
 
 function setPanelOpen(open) {
   state.opsOpen = Boolean(open);
@@ -26,6 +46,17 @@ export function setupOperationsPanel() {
     if (state.opsOpen) await refreshOperationsPanel();
   });
   el.addEventListener('click', ev => {
+    const pageButton = ev.target.closest('[data-ops-page]');
+    if (pageButton && !pageButton.disabled) {
+      const key = pageButton.dataset.opsPage;
+      if (!Object.hasOwn(pages, key)) return;
+      pages[key] = Math.max(0, pages[key] + Number(pageButton.dataset.direction));
+      renderOperationsPanel(state.opsData);
+      const nextButton = el.querySelector(`[data-ops-page="${key}"][data-direction="${pageButton.dataset.direction}"]:not(:disabled)`)
+        || el.querySelector(`[data-ops-page="${key}"]:not(:disabled)`);
+      nextButton?.focus();
+      return;
+    }
     const target = ev.target.closest('[data-ops-task-id]');
     if (!target) return;
     const taskId = target.dataset.opsTaskId;
@@ -55,6 +86,11 @@ export async function refreshOperationsPanel() {
 export function renderOperationsPanel(data) {
   const el = panel();
   if (!el) return;
+  if (pagingBoard !== state.board) {
+    pages.blocked = 0;
+    pages.failures = 0;
+    pagingBoard = state.board;
+  }
   const summary = data?.summary || {};
   el.innerHTML = `
     <div class="ops-header">
@@ -123,7 +159,8 @@ function renderRetryTable(items) {
 }
 
 function renderBlockedAfterRetries(items) {
-  const rows = items.map(item => {
+  const page = pageItems(items, 'blocked');
+  const rows = page.items.map(item => {
     const task = item.task || {};
     return `<tr data-ops-task-id="${escapeHtml(task.id || '')}">
       <td>${taskLink(task)}</td>
@@ -133,18 +170,19 @@ function renderBlockedAfterRetries(items) {
       <td><button class="button ghost" type="button" data-ops-task-id="${escapeHtml(task.id || '')}">${t('opsOpenTask')}</button></td>
     </tr>`;
   }).join('');
-  return section(t('opsBlockedAfterRetries'), items.length ? table(['Task', t('opsAttempt'), 'Kind', t('opsLastError'), ''], rows) : empty(t('opsNoBlockedAfterRetries')));
+  return section(t('opsBlockedAfterRetries'), items.length ? table(['Task', t('opsAttempt'), 'Kind', t('opsLastError'), ''], rows) + pagination('blocked', page, t('opsBlockedAfterRetries')) : empty(t('opsNoBlockedAfterRetries')));
 }
 
 function renderRecentFailures(items) {
-  const rows = items.map(event => `<tr data-ops-task-id="${escapeHtml(event.task_id || '')}">
+  const page = pageItems(items, 'failures');
+  const rows = page.items.map(event => `<tr data-ops-task-id="${escapeHtml(event.task_id || '')}">
     <td><code>${escapeHtml(String(event.id))}</code></td>
     <td>${escapeHtml(event.kind || '')}</td>
     <td><code>${escapeHtml(event.task_id || '')}</code></td>
     <td>${formatTimestamp(event.created_at)}</td>
     <td>${escapeHtml(eventError(event))}</td>
   </tr>`).join('');
-  return section(t('opsRecentFailures'), items.length ? table(['ID', 'Kind', 'Task', t('created'), t('opsLastError')], rows) : empty(t('opsNoFailures')));
+  return section(t('opsRecentFailures'), items.length ? `<p class="ops-table-note">${escapeHtml(t('opsRecentLimit'))}</p>` + table(['ID', 'Kind', 'Task', t('created'), t('opsLastError')], rows) + pagination('failures', page, t('opsRecentFailures')) : empty(t('opsNoFailures')));
 }
 
 function section(title, body) {

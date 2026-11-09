@@ -225,6 +225,12 @@ textarea { width: 100%; resize: vertical; }
 .ops-task-link { appearance: none; border: none; background: transparent; color: var(--ink); padding: 0; display: grid; gap: 3px; text-align: left; cursor: pointer; }
 .ops-task-link code { color: var(--link); }
 .ops-task-link span { font-weight: 800; }
+.ops-table-note { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.ops-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 12px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ops-pagination > div { display: flex; gap: 8px; }
+.ops-pagination .button { padding: 7px 11px; font-size: 13px; }
+.ops-pagination .button:disabled { opacity: .5; cursor: not-allowed; }
+.ops-pagination .button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 @media (max-width: 900px) {
   .topbar, .hero-card, .toolbar { align-items: stretch; flex-direction: column; }
 }
@@ -236,4 +242,61 @@ textarea { width: 100%; resize: vertical; }
   .dependency-mini-current { grid-template-columns: 1fr; gap: 8px; }
   .dependency-mini-current > span { display: none; }
   .monitor-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Keep the active board in view; less frequent controls open on demand. */
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.topbar { position: relative; z-index: 20; margin-bottom: 28px; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; box-shadow: none; }
+.board-select-label select { max-width: min(360px, 55vw); }
+.board-heading { display: flex; align-items: center; gap: 16px; }
+.board-heading > div { flex: 1; min-width: 0; }
+.board-heading h2 { font-size: 24px; letter-spacing: -.03em; }
+.board-heading p:not(:empty) { margin-top: 5px; font-size: 14px; }
+.health-warning { color: var(--warning); font-size: 13px; font-weight: 700; }
+.toolbar { position: relative; z-index: 10; margin: 18px 0 0; padding: 10px; box-shadow: none; }
+.filters #searchInput { min-width: min(240px, 100%); }
+.disclosure summary { cursor: pointer; }
+.menu-disclosure { position: relative; }
+.menu-disclosure summary { list-style: none; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.menu-disclosure summary::-webkit-details-marker { display: none; }
+.menu-disclosure summary::after { content: '⌄'; font-size: 14px; }
+.menu-panel { position: absolute; z-index: 20; top: calc(100% + 8px); right: 0; width: max-content; min-width: 220px; max-width: min(340px, calc(100vw - 24px)); display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-strong); box-shadow: var(--card-hover-shadow); }
+.menu-panel .button { width: 100%; text-align: left; border-radius: var(--radius-sm); }
+.menu-panel .theme-toggle { justify-content: flex-start; }
+.menu-panel .health-panel { min-width: 0; padding: 12px 6px 4px; border-top: 1px solid var(--hairline); }
+.menu-panel .health-panel small { max-width: 260px; overflow-wrap: anywhere; }
+.filters-menu .menu-panel { left: 0; right: auto; }
+.filter-panel label:not(.check) { display: grid; gap: 5px; font-size: 13px; font-weight: 600; }
+.filter-panel select { width: 100%; }
+.filter-panel .check { padding: 4px 0; font-size: 14px; }
+.filter-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 50%; background: var(--primary); color: var(--primary-ink); font-size: 11px; }
+.board-overview { margin: 14px 2px; }
+.board-overview > summary { color: var(--muted); font-size: 13px; font-weight: 700; }
+.board-overview > summary .muted { margin-left: 6px; font-weight: 400; }
+.board { min-height: calc(100vh - 230px); }
+.task-card .card-top code, .task-card > p { display: none; }
+.task-card h3 { margin-top: 4px; }
+.task-card:focus-visible, .menu-disclosure summary:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+@media (hover: hover) {
+  .task-card .dependency-port { opacity: 0; }
+  .task-card:hover .dependency-port, .task-card:focus-within .dependency-port, .board.is-linking .dependency-port { opacity: 1; }
+}
+@media (max-width: 900px) {
+  .topbar { flex-direction: row; align-items: center; }
+  .toolbar { flex-direction: row; align-items: center; flex-wrap: wrap; }
+}
+@media (max-width: 760px) {
+  .topbar { margin-bottom: 22px; flex-wrap: wrap; }
+  .top-actions { width: 100%; flex-wrap: nowrap; }
+  .board-select-label { flex: 1; min-width: 0; }
+  .board-select-label select { max-width: none; width: 100%; }
+  .board-heading { flex-wrap: wrap; }
+  .board-heading h2 { font-size: 21px; }
+  .board-heading .health-warning { order: 3; width: 100%; }
+  .filters { flex-basis: 100%; }
+  .filters #searchInput { min-width: 0; width: 0; }
+  .toolbar-actions { width: 100%; justify-content: flex-start; }
+  .board { min-height: 58vh; }
 }

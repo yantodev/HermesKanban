@@ -1,8 +1,8 @@
-import { api } from './api.js?v=20261109-review';
-import { t, applyI18n } from './i18n.js?v=20261109-review';
-import { renderMarkdown, escapeHtml } from './markdown.js?v=20261109-review';
-import { renderMonitor } from './monitor.js?v=20261109-review';
-import { state, toast } from './state.js?v=20261109-review';
+import { api } from './api.js?v=20261109-pagination';
+import { t, applyI18n } from './i18n.js?v=20261109-pagination';
+import { renderMarkdown, escapeHtml } from './markdown.js?v=20261109-pagination';
+import { renderMonitor } from './monitor.js?v=20261109-pagination';
+import { state, toast } from './state.js?v=20261109-pagination';
 
 export function closeDrawer() {
   const drawer = document.getElementById('drawer');

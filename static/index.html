@@ -7,76 +7,75 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/design-tokens.css?v=20261109-review" />
-  <link rel="stylesheet" href="/static/style.css?v=20261109-review" />
+  <link rel="stylesheet" href="/static/design-tokens.css?v=20261109-pagination" />
+  <link rel="stylesheet" href="/static/style.css?v=20261109-pagination" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">H</div>
-        <div>
-          <h1>Hermes Kanban</h1>
-          <p data-i18n="subtitle">Papan operasi yang mudah dibaca</p>
-        </div>
+        <h1>Hermes Kanban</h1>
       </div>
       <div class="top-actions">
-        <select id="boardSelect" aria-label="board"></select>
-        <button class="button ghost" id="newBoardBtn" data-i18n="newBoard">Tambah papan</button>
-        <button class="button ghost" id="refreshBtn" data-i18n="refresh">Muat ulang</button>
-        <button class="button ghost theme-toggle" id="themeToggle" type="button" aria-pressed="false">🌙 Beralih ke tema gelap</button>
-        <button class="button" id="langToggle">EN</button>
+        <label class="board-select-label"><span class="sr-only" data-i18n="selectBoard">Pilih board</span><select id="boardSelect" aria-label="Pilih board" data-i18n-aria-label="selectBoard"></select></label>
+        <details class="disclosure menu-disclosure settings-menu">
+          <summary class="button ghost" data-i18n="settings">Pengaturan</summary>
+          <div class="menu-panel">
+            <button class="button ghost" id="newBoardBtn" data-i18n="newBoard">Tambah papan</button>
+            <button class="button ghost" id="refreshBtn" data-i18n="refresh">Muat ulang</button>
+            <button class="button ghost theme-toggle" id="themeToggle" type="button" aria-pressed="false">🌙 Beralih ke tema gelap</button>
+            <button class="button ghost" id="langToggle">EN</button>
+            <div class="health-panel">
+              <span id="healthDot" class="dot"></span>
+              <div><strong id="healthText">loading</strong><small id="serverLabel">KanbanWebUI</small><small id="dbPath"></small></div>
+            </div>
+          </div>
+        </details>
       </div>
     </header>
 
     <main>
-      <section class="hero-card">
-        <div>
-          <p id="serverLabel" class="eyebrow">KanbanWebUI</p>
-          <h2 id="boardTitle">Default</h2>
-          <p id="boardDescription" class="muted">WebUI Kanban khusus yang menggunakan basis data yang sama dengan Hermes CLI</p>
-        </div>
-        <div class="health-panel">
-          <span id="healthDot" class="dot"></span>
-          <div>
-            <strong id="healthText">loading</strong>
-            <small id="dbPath"></small>
-          </div>
-        </div>
-      </section>
-
-      <section class="board-cards-section" aria-labelledby="boardsOverviewTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow" data-i18n="boardsOverview">Board</p>
-            <h2 id="boardsOverviewTitle" data-i18n="boardsOverview">Ringkasan board</h2>
-          </div>
-          <span id="boardCardsCount" class="muted" aria-live="polite"></span>
-        </div>
-        <div id="boardCards" class="board-cards" aria-live="polite"></div>
+      <section class="board-heading">
+        <div><h2 id="boardTitle">Default</h2><p id="boardDescription" class="muted"></p></div>
+        <span id="healthWarning" class="health-warning" role="status" hidden data-i18n="serviceUnavailable">Status layanan bermasalah</span>
+        <button class="button primary" id="taskCreateBtn" type="button" data-i18n="taskCreate">Buat tugas</button>
       </section>
 
       <section class="toolbar" aria-label="filters">
         <div class="filters">
-          <input id="searchInput" data-i18n-placeholder="search" placeholder="Cari judul/isi/ID" />
-          <select id="assigneeFilter"><option value="" data-i18n="allAssignees">Semua penanggung jawab</option></select>
-          <select id="dependencyView" aria-label="dependency view">
-            <option value="focus" data-i18n="dependencyViewFocus">Garis: Fokus</option>
-            <option value="all" data-i18n="dependencyViewAll">Garis: Semua</option>
-            <option value="blocked" data-i18n="dependencyViewBlocked">Garis: Terblokir</option>
-            <option value="off" data-i18n="dependencyViewOff">Garis: Tersembunyi</option>
-          </select>
-          <label class="check"><input id="archivedToggle" type="checkbox" /> <span data-i18n="showArchived">Tampilkan arsip</span></label>
+          <input id="searchInput" type="search" aria-label="Cari tugas" data-i18n-aria-label="search" data-i18n-placeholder="search" placeholder="Cari judul/isi/ID" />
+          <details class="disclosure menu-disclosure filters-menu" id="filtersMenu">
+            <summary class="button ghost"><span data-i18n="filters">Filter</span> <span id="filterCount" class="filter-count" hidden></span></summary>
+            <div class="menu-panel filter-panel">
+              <label><span data-i18n="assigneeFilter">Penanggung jawab</span><select id="assigneeFilter"><option value="" data-i18n="allAssignees">Semua penanggung jawab</option></select></label>
+              <label><span data-i18n="dependencies">Dependensi</span><select id="dependencyView" aria-label="dependency view">
+                <option value="focus" data-i18n="dependencyViewFocus">Garis: Fokus</option>
+                <option value="all" data-i18n="dependencyViewAll">Garis: Semua</option>
+                <option value="blocked" data-i18n="dependencyViewBlocked">Garis: Terblokir</option>
+                <option value="off" data-i18n="dependencyViewOff">Garis: Tersembunyi</option>
+              </select></label>
+              <label class="check"><input id="archivedToggle" type="checkbox" /> <span data-i18n="showArchived">Tampilkan arsip</span></label>
+            </div>
+          </details>
         </div>
         <div class="toolbar-actions">
           <button class="button ghost" id="opsToggleBtn" type="button" data-i18n="operations" aria-expanded="false">Operasi</button>
-          <button class="button primary" id="taskCreateBtn" type="button" data-i18n="taskCreate">Buat tugas</button>
-          <button class="button ghost" id="workflowBtn" type="button" data-i18n="workflowCreate">Buat alur kerja AI</button>
-          <button class="button ghost" id="bulkBtn" type="button" data-i18n="bulkCreate">Tambah massal</button>
+          <details class="disclosure menu-disclosure actions-menu">
+            <summary class="button ghost" data-i18n="moreActions">Tindakan lain</summary>
+            <div class="menu-panel">
+              <button class="button ghost" id="workflowBtn" type="button" data-i18n="workflowCreate">Buat alur kerja AI</button>
+              <button class="button ghost" id="bulkBtn" type="button" data-i18n="bulkCreate">Tambah massal</button>
+            </div>
+          </details>
         </div>
       </section>
 
-      <section id="kpiRow" class="kpi-row" aria-label="board stats"></section>
+      <details class="board-overview disclosure">
+        <summary><span data-i18n="boardsOverview">Daftar board</span> <span id="boardCardsCount" class="muted" aria-live="polite"></span></summary>
+        <section class="board-cards-section" aria-label="boards"><div id="boardCards" class="board-cards" aria-live="polite"></div></section>
+        <section id="kpiRow" class="kpi-row" aria-label="board stats"></section>
+      </details>
       <section id="opsPanel" class="ops-panel" aria-label="operations" hidden></section>
       <section id="board" class="board" aria-label="kanban board"></section>
     </main>
@@ -174,6 +173,6 @@ Task two"></textarea>
     </form>
   </dialog>
 
-  <script type="module" src="/static/app.js?v=20261109-review"></script>
+  <script type="module" src="/static/app.js?v=20261109-pagination"></script>
 </body>
 </html>

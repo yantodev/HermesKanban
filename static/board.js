@@ -1,8 +1,8 @@
-import { t } from './i18n.js?v=20261109-review';
-import { escapeHtml } from './markdown.js?v=20261109-review';
-import { openTaskDrawer } from './drawer.js?v=20261109-review';
-import { attachDragHandlers } from './dragdrop.js?v=20261109-review';
-import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20261109-review';
+import { t } from './i18n.js?v=20261109-pagination';
+import { escapeHtml } from './markdown.js?v=20261109-pagination';
+import { openTaskDrawer } from './drawer.js?v=20261109-pagination';
+import { attachDragHandlers } from './dragdrop.js?v=20261109-pagination';
+import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20261109-pagination';
 
 function card(task) {
   const isUnassigned = !task.assignee;

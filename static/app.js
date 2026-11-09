@@ -1,14 +1,14 @@
-import { api } from './api.js?v=20261109-review';
-import { applyI18n, lang, setLang, t } from './i18n.js?v=20261109-review';
-import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20261109-review';
-import { renderBoard, renderKpis } from './board.js?v=20261109-review';
-import { setupDependencyControls } from './dependency-lines.js?v=20261109-review';
-import { setupForms } from './forms.js?v=20261109-review';
-import { setupMobileFallback } from './mobile.js?v=20261109-review';
-import { setupAppUpdatePrompt } from './update.js?v=20261109-review';
-import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20261109-review';
-import { closeDrawer } from './drawer.js?v=20261109-review';
-import { state, setBoard, toast } from './state.js?v=20261109-review';
+import { api } from './api.js?v=20261109-pagination';
+import { applyI18n, lang, setLang, t } from './i18n.js?v=20261109-pagination';
+import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20261109-pagination';
+import { renderBoard, renderKpis } from './board.js?v=20261109-pagination';
+import { setupDependencyControls } from './dependency-lines.js?v=20261109-pagination';
+import { setupForms } from './forms.js?v=20261109-pagination';
+import { setupMobileFallback } from './mobile.js?v=20261109-pagination';
+import { setupAppUpdatePrompt } from './update.js?v=20261109-pagination';
+import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20261109-pagination';
+import { closeDrawer } from './drawer.js?v=20261109-pagination';
+import { state, setBoard, toast } from './state.js?v=20261109-pagination';
 
 function renderBoardCards(data) {
   const root = document.getElementById('boardCards');
@@ -77,12 +77,27 @@ async function loadBoards() {
 }
 
 async function loadStatus() {
-  const status = await api.status();
-  document.getElementById('healthDot').classList.toggle('ok', status.ok);
-  document.getElementById('healthText').textContent = status.ok ? 'OK' : 'Error';
-  document.getElementById('dbPath').textContent = status.db_path || '';
-  const serverLabel = document.getElementById('serverLabel');
-  if (serverLabel) serverLabel.textContent = `${status.service || 'kanban-webui'} · ${window.location.host}`;
+  try {
+    const status = await api.status();
+    document.getElementById('healthDot').classList.toggle('ok', status.ok);
+    document.getElementById('healthText').textContent = status.ok ? 'OK' : 'Error';
+    document.getElementById('healthWarning').hidden = Boolean(status.ok);
+    document.getElementById('dbPath').textContent = status.db_path || '';
+    document.getElementById('serverLabel').textContent = `${status.service || 'kanban-webui'} · ${window.location.host}`;
+  } catch (err) {
+    document.getElementById('healthDot').classList.remove('ok');
+    document.getElementById('healthText').textContent = 'Error';
+    document.getElementById('healthWarning').hidden = false;
+    console.warn(err);
+  }
+}
+
+function updateFilterCount() {
+  const count = Number(Boolean(state.assignee)) + Number(state.includeArchived) + Number(state.dependencyView !== 'focus');
+  const badge = document.getElementById('filterCount');
+  badge.textContent = count ? String(count) : '';
+  badge.hidden = !count;
+  badge.setAttribute('aria-label', `${count} ${t('activeFilters')}`);
 }
 
 function countAssigneeTasks(assignee) {
@@ -140,7 +155,8 @@ export async function load() {
   state.latestEventId = data.latest_event_id;
   renderAssigneeControls(data);
   document.getElementById('boardTitle').textContent = data.board_meta.name || data.board;
-  document.getElementById('boardDescription').textContent = data.board_meta.description || 'WebUI Kanban khusus yang menggunakan basis data yang sama dengan Hermes CLI';
+  document.getElementById('boardDescription').textContent = data.board_meta.description || '';
+  updateFilterCount();
   renderKpis(data);
   renderBoard(data);
   await refreshOperationsPanel();
@@ -155,13 +171,22 @@ function setupControls() {
     await api.switchBoard(state.board);
     await load();
   });
-  document.getElementById('archivedToggle').addEventListener('change', ev => { state.includeArchived = ev.target.checked; load(); });
+  document.getElementById('archivedToggle').addEventListener('change', ev => { state.includeArchived = ev.target.checked; updateFilterCount(); load(); });
   document.getElementById('searchInput').addEventListener('input', ev => { state.query = ev.target.value; clearTimeout(ev.target._timer); ev.target._timer = setTimeout(load, 250); });
-  document.getElementById('assigneeFilter').addEventListener('change', ev => { state.assignee = ev.target.value; load(); });
+  document.getElementById('assigneeFilter').addEventListener('change', ev => { state.assignee = ev.target.value; updateFilterCount(); load(); });
+  document.getElementById('dependencyView').addEventListener('change', ev => { state.dependencyView = ev.target.value; updateFilterCount(); });
+  document.addEventListener('click', ev => {
+    document.querySelectorAll('.menu-disclosure[open]').forEach(menu => {
+      if (!menu.contains(ev.target) || ev.target.closest('button')) menu.open = false;
+    });
+  });
   document.getElementById('overlay').addEventListener('click', closeDrawer);
   document.addEventListener('kanban:refresh', load);
   document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape') closeDrawer();
+    if (ev.key === 'Escape') {
+      document.querySelectorAll('.menu-disclosure[open]').forEach(menu => { menu.open = false; menu.querySelector('summary')?.focus(); });
+      closeDrawer();
+    }
     const tagName = ev.target?.tagName?.toLowerCase();
     const isTyping = ['input', 'select', 'textarea'].includes(tagName) || ev.target?.isContentEditable;
     if (!isTyping && ev.key === '/') { ev.preventDefault(); document.getElementById('searchInput').focus(); }
