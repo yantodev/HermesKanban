@@ -83,7 +83,10 @@ textarea { width: 100%; resize: vertical; }
 .board.is-linking .dependency-port:not(.is-link-compatible):not(.is-link-source) { opacity: .42; }
 .task-card.running { background: var(--running); }
 .task-card.blocked { background: var(--blocked); }
+.task-card.review { background: color-mix(in srgb, #48b0c4 16%, var(--card-bg)); border-color: color-mix(in srgb, #48b0c4 55%, var(--hairline)); }
 .task-card.done { background: var(--done); }
+.review-summary { border: 1px solid color-mix(in srgb, #48b0c4 55%, var(--hairline)); background: color-mix(in srgb, #48b0c4 12%, var(--surface)); color: var(--ink); }
+.status-dot.review { background: #48b0c4; }
 .card-top, .card-foot, .chips { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .card-top code, .drawer code { font-family: var(--font-mono); color: var(--link); font-size: 12px; }
 .task-card h3 { font-size: 15px; line-height: 1.3; margin: 10px 0 8px; }

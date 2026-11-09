@@ -31,6 +31,25 @@ def test_board_crud_switch_and_metadata(client):
     assert deleted['action'] == 'archived'
 
 
+def test_review_column_is_exposed_and_tasks_can_enter_review(client):
+    config = client.get('/api/config')
+    assert config.status_code == 200, config.text
+    assert 'review' in config.json()['columns']
+
+    created = client.post('/api/tasks', json={'title': 'Awaiting human review', 'assignee': 'dev'})
+    assert created.status_code == 200, created.text
+    task_id = created.json()['task']['id']
+
+    moved = client.patch(f'/api/tasks/{task_id}', json={'status': 'review'})
+    assert moved.status_code == 200, moved.text
+    assert moved.json()['task']['status'] == 'review'
+
+    response = client.get('/api/board', params={'board': 'default'})
+    assert response.status_code == 200, response.text
+    assert 'review' in response.json()['column_order']
+    assert any(item['id'] == task_id for item in response.json()['columns']['review'])
+
+
 def test_board_view_accepts_empty_frontend_filters(client):
     created = client.post('/api/tasks', json={'title': 'Visible task', 'assignee': 'dev'})
     assert created.status_code == 200, created.text

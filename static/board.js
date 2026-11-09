@@ -1,8 +1,8 @@
-import { t } from './i18n.js?v=20260508-02';
-import { escapeHtml } from './markdown.js?v=20260508-02';
-import { openTaskDrawer } from './drawer.js?v=20260508-02';
-import { attachDragHandlers } from './dragdrop.js?v=20260508-02';
-import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20260508-02';
+import { t } from './i18n.js?v=20261109-review';
+import { escapeHtml } from './markdown.js?v=20261109-review';
+import { openTaskDrawer } from './drawer.js?v=20261109-review';
+import { attachDragHandlers } from './dragdrop.js?v=20261109-review';
+import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20261109-review';
 
 function card(task) {
   const isUnassigned = !task.assignee;
@@ -45,8 +45,10 @@ export function renderBoard(data) {
   root.style.setProperty('--kanban-column-count', String(Math.max(1, statuses.length)));
   root.innerHTML = statuses.map(status => {
     const tasks = data.columns[status] || [];
-    return `<section class="board-column" data-status="${status}">
+    const reviewHint = status === 'review' ? `<small class="review-summary">${escapeHtml(t('reviewHint'))}</small>` : '';
+    return `<section class="board-column${status === 'review' ? ' review-column' : ''}" data-status="${status}">
       <header><div><h2>${t(status)}</h2><small>${tasks.length}</small></div><button class="mini-add" data-status="${status}">＋</button></header>
+      ${reviewHint}
       <div class="drop-placeholder"></div>
       <div class="cards">${tasks.length ? tasks.map(card).join('') : `<div class="empty">${t('empty')}</div>`}</div>
     </section>`;

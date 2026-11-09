@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import stat
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -178,6 +179,34 @@ def test_install_defaults_to_real_home_when_hermes_profile_home_is_active(tmp_pa
     assert str(real_home / ".local" / "bin" / "hermes-kanban") in result.stdout
     assert str(real_home / ".hermes" / "kanban-webui.env") in result.stdout
     assert str(fake_profile_home / ".hermes" / "kanban-webui.env") not in result.stdout
+
+
+def test_install_uses_supported_python_when_python3_is_too_old(tmp_path):
+    fake_bin = tmp_path / "bin"
+    fake_home = tmp_path / "home"
+    fake_bin.mkdir()
+    fake_home.mkdir()
+
+    os.symlink("/usr/bin/python3", fake_bin / "python3")
+    os.symlink(sys.executable, fake_bin / "python3.11")
+
+    result = subprocess.run(
+        ["bash", "scripts/install.sh", "--dry-run", "--skip-uv-sync"],
+        cwd=ROOT,
+        env={
+            **os.environ,
+            "HOME": str(fake_home),
+            "HERMES_REAL_HOME": str(fake_home),
+            "PATH": f"{fake_bin}:/usr/bin:/bin",
+        },
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+
+    assert "Python 3.11+ is required" not in result.stdout + result.stderr
+    assert "Hermes KanbanWebUI is installed." in result.stdout
 
 
 def test_install_writes_real_home_based_env_file(tmp_path):

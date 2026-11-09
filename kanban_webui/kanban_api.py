@@ -27,9 +27,9 @@ from .operations import build_operations_summary
 
 router = APIRouter(prefix="/api")
 
-BOARD_COLUMNS = ["triage", "todo", "ready", "running", "blocked", "done"]
+BOARD_COLUMNS = ["triage", "todo", "ready", "running", "blocked", "review", "done"]
 INITIAL_TASK_STATUSES = {"ready", "todo", "triage"}
-UPDATE_TASK_STATUSES = {"done", "blocked", "ready", "archived", "todo", "triage", "running"}
+UPDATE_TASK_STATUSES = {"done", "blocked", "ready", "review", "archived", "todo", "triage", "running"}
 WRITEABLE_TASK_FIELDS = {
     "title",
     "body",
@@ -499,6 +499,8 @@ def _precheck_status_transition(task, status: Optional[str]) -> None:
         allowed = current in {"running", "ready", "blocked"}
     elif status == "blocked":
         allowed = current in {"running", "ready"}
+    elif status == "review":
+        allowed = current in {"running", "ready", "blocked", "done"}
     elif status == "ready":
         allowed = True
     elif status == "archived":
@@ -596,6 +598,8 @@ def _apply_task_update(conn, task_id: str, payload: UpdateTaskBody) -> dict[str,
             )
         elif status == "blocked":
             ok = kanban_db.block_task(conn, task_id, reason=payload.block_reason)
+        elif status == "review":
+            ok = _set_status_direct(conn, task_id, "review")
         elif status == "ready":
             current = kanban_db.get_task(conn, task_id)
             ok = kanban_db.unblock_task(conn, task_id) if current and current.status == "blocked" else _set_status_direct(conn, task_id, "ready")

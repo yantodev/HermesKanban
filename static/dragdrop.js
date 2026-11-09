@@ -1,5 +1,5 @@
-import { api } from './api.js?v=20260508-02';
-import { state, toast } from './state.js?v=20260508-02';
+import { api } from './api.js?v=20261109-review';
+import { state, toast } from './state.js?v=20261109-review';
 
 let draggedId = null;
 

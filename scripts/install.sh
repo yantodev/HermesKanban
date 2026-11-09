@@ -23,6 +23,8 @@ APP_DIR="$APP_DIR_DEFAULT"
 ENV_FILE="$ENV_FILE_DEFAULT"
 DRY_RUN=0
 SKIP_UV_SYNC=0
+PYTHON_BIN=""
+UV_BIN=""
 
 usage() {
   cat <<'USAGE'
@@ -98,33 +100,36 @@ EOF
   log "Created env file: $ENV_FILE"
 }
 
-check_python() {
-  command -v python3 >/dev/null 2>&1 || { echo "python3 not found" >&2; exit 1; }
-  python3 - <<'PY'
+python_supported() {
+  local candidate="$1"
+  "$candidate" - <<'PY'
 import sys
-if sys.version_info < (3, 11):
-    raise SystemExit('Python 3.11+ is required')
+raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
 PY
 }
 
 resolve_uv() {
-  local candidate
+  local candidate resolved
 
   if [[ -n "${UV:-}" ]]; then
-    if command -v "$UV" >/dev/null 2>&1; then
-      command -v "$UV"
-    elif [[ -x "$UV" ]]; then
+    if [[ "$UV" == */* && -x "$UV" ]]; then
       printf '%s\n' "$UV"
+    else
+      resolved="$(command -v "$UV" 2>/dev/null || true)"
+      if [[ -n "$resolved" && -x "$resolved" ]]; then
+        printf '%s\n' "$resolved"
+      fi
     fi
     return
   fi
 
-  if command -v uv >/dev/null 2>&1; then
-    command -v uv
+  resolved="$(command -v uv 2>/dev/null || true)"
+  if [[ -n "$resolved" && -x "$resolved" ]]; then
+    printf '%s\n' "$resolved"
     return
   fi
 
-  for candidate in "$REAL_HOME_DEFAULT"/.hermes/tools/uv-*/uv; do
+  for candidate in "$REAL_HOME_DEFAULT"/.hermes/tools/uv-*/uv "$REAL_HOME_DEFAULT"/.hermes/bin/uv; do
     if [[ -x "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return
@@ -132,9 +137,47 @@ resolve_uv() {
   done
 }
 
+resolve_python() {
+  local candidate resolved
+
+  if [[ -n "${PYTHON:-}" ]]; then
+    if [[ "$PYTHON" == */* && -x "$PYTHON" ]]; then
+      python_supported "$PYTHON" && printf '%s\n' "$PYTHON"
+    else
+      resolved="$(command -v "$PYTHON" 2>/dev/null || true)"
+      if [[ -n "$resolved" && -x "$resolved" ]] && python_supported "$resolved"; then
+        printf '%s\n' "$resolved"
+      fi
+    fi
+    return
+  fi
+
+  for candidate in python3.14 python3.13 python3.12 python3.11 python3 python; do
+    resolved="$(command -v "$candidate" 2>/dev/null || true)"
+    if [[ -n "$resolved" && -x "$resolved" ]] && python_supported "$resolved"; then
+      printf '%s\n' "$resolved"
+      return
+    fi
+  done
+
+  for candidate in "$REAL_HOME_DEFAULT"/.hermes/tools/python-*/bin/python3*; do
+    if [[ -x "$candidate" ]] && python_supported "$candidate"; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+
+  if [[ -n "$UV_BIN" ]]; then
+    resolved="$($UV_BIN python find '>=3.11' 2>/dev/null || true)"
+    if [[ -n "$resolved" && -x "$resolved" ]] && python_supported "$resolved"; then
+      printf '%s\n' "$resolved"
+    fi
+  fi
+}
+
 check_uv() {
-  [[ "$SKIP_UV_SYNC" == "1" ]] && return
   UV_BIN="$(resolve_uv)"
+  [[ "$SKIP_UV_SYNC" == "1" ]] && return
   if [[ -z "$UV_BIN" ]]; then
     echo "uv not found. Install uv or set UV=/absolute/path/to/uv." >&2
     exit 1
@@ -225,16 +268,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 APP_DIR="$(cd "$APP_DIR" && pwd)"
-PREFIX="$(python3 -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$PREFIX")"
-ENV_FILE="$(python3 -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$ENV_FILE")"
 
 if [[ "$DRY_RUN" == "1" ]]; then
   log "DRY RUN: install Hermes KanbanWebUI"
 fi
 
 check_app_dir
-check_python
 check_uv
+PYTHON_BIN="$(resolve_python)"
+if [[ -z "$PYTHON_BIN" ]]; then
+  echo "Python 3.11+ is required. Install it, set PYTHON=/absolute/path/to/python, or install Python through uv." >&2
+  exit 1
+fi
+PREFIX="$("$PYTHON_BIN" -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$PREFIX")"
+ENV_FILE="$("$PYTHON_BIN" -c 'import os,sys; print(os.path.abspath(os.path.expanduser(sys.argv[1])))' "$ENV_FILE")"
+log "Using Python: $PYTHON_BIN ($("$PYTHON_BIN" --version 2>&1))"
 warn_hermes_missing
 write_env_file
 install_wrapper

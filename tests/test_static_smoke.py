@@ -40,7 +40,7 @@ def test_app_update_static_contract():
     ]:
         assert phrase in index
 
-    assert './update.js?v=20260508-02' in app
+    assert './update.js?v=20261109-review' in app
     assert 'setupAppUpdatePrompt' in app
     for phrase in ['appUpdateStatus', '/api/app/update-status', 'applyAppUpdate', '/api/app/update']:
         assert phrase in api
@@ -60,6 +60,22 @@ def test_app_update_static_contract():
         assert key in i18n
     for css_class in ['.update-modal', '.update-commit-list', '.update-status']:
         assert css_class in style
+
+
+def test_review_column_static_contract():
+    root = Path(__file__).resolve().parents[1]
+    board = (root / 'static' / 'board.js').read_text(encoding='utf-8')
+    drawer = (root / 'static' / 'drawer.js').read_text(encoding='utf-8')
+    i18n = (root / 'static' / 'i18n.js').read_text(encoding='utf-8')
+    style = (root / 'static' / 'style.css').read_text(encoding='utf-8')
+
+    assert "'review'" in board
+    assert "data-action=\"review\"" in drawer
+    assert "review: 'Review'" in i18n
+    assert "review: 'Tinjauan'" in i18n
+    assert '.task-card.review' in style
+    assert '.status-dot.review' in style
+    assert 'review-summary' in style
 
 
 def test_static_javascript_parses():
@@ -82,9 +98,9 @@ def test_dark_mode_static_contract():
 
     assert 'id="themeToggle"' in index
     assert 'aria-pressed="false"' in index
-    assert 'style.css?v=20260508-02' in index
-    assert 'app.js?v=20260508-02' in index
-    assert './theme.js?v=20260508-02' in app
+    assert 'style.css?v=20261109-review' in index
+    assert 'app.js?v=20261109-review' in index
+    assert './theme.js?v=20261109-review' in app
     assert 'setupThemeToggle' in app
     assert 'updateThemeToggleLabel' in app
     assert 'kanbanTheme' in theme
@@ -231,8 +247,8 @@ def test_unassigned_tasks_are_visually_flagged():
         assert key in i18n
     for css_class in ['.task-card.is-unassigned', '.profile-missing-badge', '.chips .missing-assignee-chip']:
         assert css_class in style
-    assert './board.js?v=20260508-02' in app
-    assert './i18n.js?v=20260508-02' in board
+    assert './board.js?v=20261109-review' in app
+    assert './i18n.js?v=20261109-review' in board
     for token in ['--warning-soft', '--warning-ring']:
         assert token in tokens
 
@@ -248,7 +264,7 @@ def test_operations_dashboard_static_contract():
 
     for phrase in ['id="opsToggleBtn"', 'id="opsPanel"']:
         assert phrase in index
-    assert './operations.js?v=20260508-02' in app
+    assert './operations.js?v=20261109-review' in app
     for phrase in ['opsSummary', '/api/ops/summary']:
         assert phrase in api
     for phrase in ['renderOperationsPanel', 'setupOperationsPanel', 'retry_queue', 'blocked_after_retries', 'openTaskDrawer']:

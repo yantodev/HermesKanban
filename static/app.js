@@ -1,14 +1,14 @@
-import { api } from './api.js?v=20260508-02';
-import { applyI18n, lang, setLang, t } from './i18n.js?v=20260508-02';
-import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20260508-02';
-import { renderBoard, renderKpis } from './board.js?v=20260508-02';
-import { setupDependencyControls } from './dependency-lines.js?v=20260508-02';
-import { setupForms } from './forms.js?v=20260508-02';
-import { setupMobileFallback } from './mobile.js?v=20260508-02';
-import { setupAppUpdatePrompt } from './update.js?v=20260508-02';
-import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20260508-02';
-import { closeDrawer } from './drawer.js?v=20260508-02';
-import { state, setBoard, toast } from './state.js?v=20260508-02';
+import { api } from './api.js?v=20261109-review';
+import { applyI18n, lang, setLang, t } from './i18n.js?v=20261109-review';
+import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20261109-review';
+import { renderBoard, renderKpis } from './board.js?v=20261109-review';
+import { setupDependencyControls } from './dependency-lines.js?v=20261109-review';
+import { setupForms } from './forms.js?v=20261109-review';
+import { setupMobileFallback } from './mobile.js?v=20261109-review';
+import { setupAppUpdatePrompt } from './update.js?v=20261109-review';
+import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20261109-review';
+import { closeDrawer } from './drawer.js?v=20261109-review';
+import { state, setBoard, toast } from './state.js?v=20261109-review';
 
 function renderBoardCards(data) {
   const root = document.getElementById('boardCards');

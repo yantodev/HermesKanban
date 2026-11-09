@@ -1,8 +1,8 @@
-import { api } from './api.js?v=20260508-02';
-import { t, applyI18n } from './i18n.js?v=20260508-02';
-import { renderMarkdown, escapeHtml } from './markdown.js?v=20260508-02';
-import { renderMonitor } from './monitor.js?v=20260508-02';
-import { state, toast } from './state.js?v=20260508-02';
+import { api } from './api.js?v=20261109-review';
+import { t, applyI18n } from './i18n.js?v=20261109-review';
+import { renderMarkdown, escapeHtml } from './markdown.js?v=20261109-review';
+import { renderMonitor } from './monitor.js?v=20261109-review';
+import { state, toast } from './state.js?v=20261109-review';
 
 export function closeDrawer() {
   const drawer = document.getElementById('drawer');
@@ -196,6 +196,7 @@ export async function openTaskDrawer(taskId) {
       <button data-action="triage" data-status="triage" class="button ghost">→ triage</button>
       <button data-action="ready" data-status="ready" class="button ghost">→ ready</button>
       <button data-action="block" data-status="blocked" class="button ghost">${t('block')}</button>
+      <button data-action="review" data-status="review" class="button ghost">→ ${t('review')}</button>
       <button data-action="unblock" data-status="ready" class="button ghost">${t('unblock')}</button>
       <button data-action="complete" data-status="done" class="button ghost">${t('complete')}</button>
       <button data-action="archive" data-status="archived" class="button ghost danger-btn">${t('archive')}</button>
