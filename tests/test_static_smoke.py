@@ -78,7 +78,7 @@ def test_app_update_static_contract():
     ]:
         assert phrase in index
 
-    assert './update.js?v=20261109-pagination' in app
+    assert './update.js?v=20261110-improvements' in app
     assert 'setupAppUpdatePrompt' in app
     for phrase in ['appUpdateStatus', '/api/app/update-status', 'applyAppUpdate', '/api/app/update']:
         assert phrase in api
@@ -133,6 +133,30 @@ def test_operations_pagination_behaviour():
     subprocess.run([node, '--experimental-default-type=module', 'tests/operations_pagination.mjs'], check=True, cwd=root)
 
 
+def test_triage_tasks_remain_visible_in_todo_column():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('node is required for board rendering checks')
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run([node, '--experimental-default-type=module', 'tests/board_triage.mjs'], check=True, cwd=root)
+
+
+def test_mobile_move_actions_follow_supported_transitions():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('node is required for mobile move checks')
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run([node, '--experimental-default-type=module', 'tests/mobile_move.mjs'], check=True, cwd=root)
+
+
+def test_attention_groups_exclude_completed_unassigned_tasks():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('node is required for attention checks')
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run([node, '--experimental-default-type=module', 'tests/attention.mjs'], check=True, cwd=root)
+
+
 def test_dark_mode_static_contract():
     root = Path(__file__).resolve().parents[1]
     index = (root / 'static' / 'index.html').read_text(encoding='utf-8')
@@ -144,9 +168,9 @@ def test_dark_mode_static_contract():
 
     assert 'id="themeToggle"' in index
     assert 'aria-pressed="false"' in index
-    assert 'style.css?v=20261109-pagination' in index
-    assert 'app.js?v=20261109-pagination' in index
-    assert './theme.js?v=20261109-pagination' in app
+    assert 'style.css?v=20261110-improvements' in index
+    assert 'app.js?v=20261110-improvements' in index
+    assert './theme.js?v=20261110-improvements' in app
     assert 'setupThemeToggle' in app
     assert 'updateThemeToggleLabel' in app
     assert 'kanbanTheme' in theme
@@ -293,8 +317,8 @@ def test_unassigned_tasks_are_visually_flagged():
         assert key in i18n
     for css_class in ['.task-card.is-unassigned', '.profile-missing-badge', '.chips .missing-assignee-chip']:
         assert css_class in style
-    assert './board.js?v=20261109-pagination' in app
-    assert './i18n.js?v=20261109-pagination' in board
+    assert './board.js?v=20261110-improvements' in app
+    assert './i18n.js?v=20261110-improvements' in board
     for token in ['--warning-soft', '--warning-ring']:
         assert token in tokens
 
@@ -310,7 +334,7 @@ def test_operations_dashboard_static_contract():
 
     for phrase in ['id="opsToggleBtn"', 'id="opsPanel"']:
         assert phrase in index
-    assert './operations.js?v=20261109-pagination' in app
+    assert './operations.js?v=20261110-improvements' in app
     for phrase in ['opsSummary', '/api/ops/summary']:
         assert phrase in api
     for phrase in ['renderOperationsPanel', 'setupOperationsPanel', 'retry_queue', 'blocked_after_retries', 'openTaskDrawer']:

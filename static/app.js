@@ -1,14 +1,15 @@
-import { api } from './api.js?v=20261109-pagination';
-import { applyI18n, lang, setLang, t } from './i18n.js?v=20261109-pagination';
-import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20261109-pagination';
-import { renderBoard, renderKpis } from './board.js?v=20261109-pagination';
-import { setupDependencyControls } from './dependency-lines.js?v=20261109-pagination';
-import { setupForms } from './forms.js?v=20261109-pagination';
-import { setupMobileFallback } from './mobile.js?v=20261109-pagination';
-import { setupAppUpdatePrompt } from './update.js?v=20261109-pagination';
-import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20261109-pagination';
-import { closeDrawer } from './drawer.js?v=20261109-pagination';
-import { state, setBoard, toast } from './state.js?v=20261109-pagination';
+import { api } from './api.js?v=20261110-improvements';
+import { applyI18n, lang, setLang, t } from './i18n.js?v=20261110-improvements';
+import { setupThemeToggle, updateThemeToggleLabel } from './theme.js?v=20261110-improvements';
+import { renderBoard, renderKpis } from './board.js?v=20261110-improvements';
+import { setupDependencyControls } from './dependency-lines.js?v=20261110-improvements';
+import { setupForms } from './forms.js?v=20261110-improvements';
+import { setupMobileFallback } from './mobile.js?v=20261110-improvements';
+import { setupAppUpdatePrompt } from './update.js?v=20261110-improvements';
+import { setupOperationsPanel, refreshOperationsPanel } from './operations.js?v=20261110-improvements';
+import { closeDrawer, openTaskDrawer } from './drawer.js?v=20261110-improvements';
+import { attentionGroups } from './attention.js?v=20261110-improvements';
+import { state, setBoard, toast } from './state.js?v=20261110-improvements';
 
 function renderBoardCards(data) {
   const root = document.getElementById('boardCards');
@@ -51,6 +52,52 @@ function renderBoardCards(data) {
     empty.className = 'empty';
     empty.textContent = t('empty');
     root.appendChild(empty);
+  }
+}
+
+function renderAttention(data) {
+  const root = document.getElementById('attentionContent');
+  const categorized = attentionGroups(data?.tasks);
+  const groups = [
+    [t('blocked'), categorized.blocked],
+    [t('profileMissing'), categorized.unassigned],
+    [t('review'), categorized.review],
+  ];
+  const unique = new Set(groups.flatMap(([, items]) => items.map(item => item.id)));
+  document.getElementById('attentionCount').textContent = `(${unique.size})`;
+  root.replaceChildren();
+  if (state.query || state.assignee || state.includeArchived) {
+    const note = document.createElement('p');
+    note.className = 'muted attention-note';
+    note.textContent = t('attentionFiltered');
+    root.appendChild(note);
+  }
+  for (const [label, items] of groups) {
+    const section = document.createElement('section');
+    const title = document.createElement('h3');
+    title.textContent = `${label} (${items.length})`;
+    section.appendChild(title);
+    if (!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'muted';
+      empty.textContent = t('empty');
+      section.appendChild(empty);
+    }
+    for (const task of items.slice(0, 5)) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'attention-task';
+      button.dataset.attentionTask = task.id;
+      button.textContent = task.title || task.id;
+      section.appendChild(button);
+    }
+    if (items.length > 5) {
+      const more = document.createElement('p');
+      more.className = 'muted';
+      more.textContent = t('attentionMore').replace('{count}', String(items.length - 5));
+      section.appendChild(more);
+    }
+    root.appendChild(section);
   }
 }
 
@@ -159,6 +206,7 @@ export async function load() {
   updateFilterCount();
   renderKpis(data);
   renderBoard(data);
+  renderAttention(data);
   await refreshOperationsPanel();
   await loadStatus();
 }
@@ -175,6 +223,10 @@ function setupControls() {
   document.getElementById('searchInput').addEventListener('input', ev => { state.query = ev.target.value; clearTimeout(ev.target._timer); ev.target._timer = setTimeout(load, 250); });
   document.getElementById('assigneeFilter').addEventListener('change', ev => { state.assignee = ev.target.value; updateFilterCount(); load(); });
   document.getElementById('dependencyView').addEventListener('change', ev => { state.dependencyView = ev.target.value; updateFilterCount(); });
+  document.getElementById('attentionContent').addEventListener('click', ev => {
+    const task = ev.target.closest('[data-attention-task]');
+    if (task) openTaskDrawer(task.dataset.attentionTask).catch(err => toast(err.message || String(err), 'error'));
+  });
   document.addEventListener('click', ev => {
     document.querySelectorAll('.menu-disclosure[open]').forEach(menu => {
       if (!menu.contains(ev.target) || ev.target.closest('button')) menu.open = false;

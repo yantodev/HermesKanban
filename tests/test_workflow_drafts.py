@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from concurrent.futures import ThreadPoolExecutor
 
 
 def _fake_proposal(
@@ -59,6 +60,71 @@ def _patch_planner(monkeypatch, seen: dict[str, Any] | None = None):
         return _fake_proposal()
 
     monkeypatch.setattr(workflow_planner, "generate_workflow_proposal", fake_generate_workflow_proposal)
+
+
+def test_manual_draft_edits_validate_and_preserve_apply_guards(client, monkeypatch):
+    _patch_profiles(monkeypatch)
+    from kanban_webui import workflow_planner
+
+    monkeypatch.setattr(workflow_planner, 'generate_workflow_proposal', lambda **_: _fake_proposal(applyable=False))
+    draft = client.post('/api/workflows/drafts?board=default', json={'prompt': 'Test'}).json()['draft']
+    url = f"/api/workflows/drafts/{draft['draft_id']}?board=default"
+    steps = [
+        {'key': 'implement', 'assignee': 'dev', 'depends_on': ['plan']},
+        {'key': 'plan', 'assignee': 'dev_plan', 'depends_on': []},
+    ]
+    edited = client.patch(url, json={'revision': 1, 'steps': steps})
+    assert edited.status_code == 200, edited.text
+    by_key = {step['key']: step for step in edited.json()['draft']['proposal']['steps']}
+    assert by_key['implement']['status'] == 'todo'
+    assert by_key['plan']['status'] == 'ready'
+    result = edited.json()['draft']
+    assert result['revision'] == 2
+    assert [step['key'] for step in result['proposal']['steps']] == ['implement', 'plan']
+    assert result['proposal']['steps'][0]['assignee'] == 'dev'
+    assert result['proposal']['applyable'] is False
+    assert client.patch(url, json={'revision': 1, 'steps': steps}).status_code == 409
+    cycle = [dict(steps[0], depends_on=['plan']), dict(steps[1], depends_on=['implement'])]
+    assert client.patch(url, json={'revision': 2, 'steps': cycle}).status_code == 422
+    assert client.patch(url, json={'revision': 2, 'steps': steps[:1]}).status_code == 422
+    unknown = [dict(steps[0], assignee='not-a-profile'), steps[1]]
+    assert client.patch(url, json={'revision': 2, 'steps': unknown}).status_code == 422
+    assert client.post(f"/api/workflows/drafts/{draft['draft_id']}/instantiate?board=default", json={}).status_code == 409
+
+
+def test_manually_edited_draft_applies_updated_dependencies_and_becomes_immutable(client, monkeypatch):
+    _patch_profiles(monkeypatch)
+    _patch_planner(monkeypatch)
+    draft = client.post('/api/workflows/drafts?board=default', json={'prompt': 'Test'}).json()['draft']
+    url = f"/api/workflows/drafts/{draft['draft_id']}?board=default"
+    steps = [
+        {'key': 'implement', 'assignee': 'dev', 'depends_on': []},
+        {'key': 'plan', 'assignee': 'dev_plan', 'depends_on': ['implement']},
+    ]
+    edited = client.patch(url, json={'revision': 1, 'steps': steps})
+    assert edited.status_code == 200, edited.text
+    by_key = {step['key']: step for step in edited.json()['draft']['proposal']['steps']}
+    assert by_key['implement']['status'] == 'ready'
+    assert by_key['plan']['status'] == 'todo'
+    applied = client.post(f"/api/workflows/drafts/{draft['draft_id']}/instantiate?board=default", json={})
+    assert applied.status_code == 200, applied.text
+    assert [(link['parent_step'], link['child_step']) for link in applied.json()['links']] == [('implement', 'plan')]
+    assert client.patch(url, json={'revision': 2, 'steps': steps}).status_code == 409
+
+
+def test_concurrent_manual_edits_do_not_overwrite_the_same_revision(client, monkeypatch):
+    _patch_profiles(monkeypatch)
+    _patch_planner(monkeypatch)
+    draft = client.post('/api/workflows/drafts?board=default', json={'prompt': 'Test'}).json()['draft']
+    url = f"/api/workflows/drafts/{draft['draft_id']}?board=default"
+    payload = {'revision': 1, 'steps': [
+        {'key': 'plan', 'assignee': 'dev_plan', 'depends_on': []},
+        {'key': 'implement', 'assignee': 'dev', 'depends_on': ['plan']},
+    ]}
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda _: client.patch(url, json=payload), range(2)))
+    assert sorted(response.status_code for response in responses) == [200, 409]
+    assert client.get(url).json()['draft']['revision'] == 2
 
 
 def test_template_workflow_endpoints_are_deprecated(client):

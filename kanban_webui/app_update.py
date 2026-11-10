@@ -14,7 +14,7 @@ import threading
 from pathlib import Path
 from typing import Callable, Optional
 
-from .config import ROOT_DIR, get_settings
+from .config import PACKAGED_INSTALL, ROOT_DIR, get_settings
 
 REMOTE = "origin"
 BRANCH = "main"
@@ -91,6 +91,8 @@ def _commit_subjects(repo: Path, *, max_commits: int = 8) -> list[dict[str, str]
 def local_git_info(repo: Path = ROOT_DIR) -> dict:
     """Return local Git metadata for service/status without fetching."""
     repo = Path(repo)
+    if PACKAGED_INSTALL and repo == ROOT_DIR:
+        return {"available": False, "reason": "installed package; update with the package manager"}
     try:
         inside = _run_git(repo, "rev-parse", "--is-inside-work-tree").stdout.strip()
         if inside != "true":
@@ -106,6 +108,8 @@ def local_git_info(repo: Path = ROOT_DIR) -> dict:
 def get_update_status(repo: Path = ROOT_DIR, *, fetch: bool = True, max_commits: int = 8) -> dict:
     """Check whether fixed ``origin/main`` can be fast-forwarded safely."""
     repo = Path(repo)
+    if PACKAGED_INSTALL and repo == ROOT_DIR:
+        return {"ok": False, "enabled": False, "reason": "installed package; update with the package manager"}
     try:
         inside = _run_git(repo, "rev-parse", "--is-inside-work-tree").stdout.strip()
         if inside != "true":

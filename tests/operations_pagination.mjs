@@ -10,8 +10,8 @@ const panel = {
 const toggle = { setAttribute() {}, addEventListener() {} };
 globalThis.document = { getElementById: id => ({ opsPanel: panel, opsToggleBtn: toggle })[id] || null };
 
-const { state } = await import('../static/state.js?v=20261109-pagination');
-const { setupOperationsPanel, renderOperationsPanel } = await import('../static/operations.js?v=20261109-pagination');
+const { state } = await import('../static/state.js?v=20261110-improvements');
+const { setupOperationsPanel, renderOperationsPanel } = await import('../static/operations.js?v=20261110-improvements');
 setupOperationsPanel();
 state.opsData = {
   blocked_after_retries: Array.from({ length: 12 }, (_, i) => ({ task: { id: `blocked-${i + 1}`, title: `Task ${i + 1}` } })),
@@ -50,6 +50,12 @@ state.opsData.blocked_after_retries = state.opsData.blocked_after_retries.slice(
 renderOperationsPanel(state.opsData);
 assert.match(section('Terblokir setelah percobaan ulang'), /blocked-5/);
 assert.doesNotMatch(section('Terblokir setelah percobaan ulang'), /ops-pagination/);
+
+state.opsData.blocked_after_retries = [{ task: { id: 'task-log', title: 'A task' }, last_error: '<script>alert(1)</script>' }];
+renderOperationsPanel(state.opsData);
+assert.match(section('Terblokir setelah percobaan ulang'), /data-ops-view="log"/);
+assert.match(section('Terblokir setelah percobaan ulang'), /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+assert.doesNotMatch(section('Terblokir setelah percobaan ulang'), /<script>/);
 state.opsData.blocked_after_retries = [];
 renderOperationsPanel(state.opsData);
 assert.match(section('Terblokir setelah percobaan ulang'), /Tidak ada tugas yang terblokir/);

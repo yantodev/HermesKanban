@@ -1,8 +1,8 @@
-import { t } from './i18n.js?v=20261109-pagination';
-import { escapeHtml } from './markdown.js?v=20261109-pagination';
-import { openTaskDrawer } from './drawer.js?v=20261109-pagination';
-import { attachDragHandlers } from './dragdrop.js?v=20261109-pagination';
-import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20261109-pagination';
+import { t } from './i18n.js?v=20261110-improvements';
+import { escapeHtml } from './markdown.js?v=20261110-improvements';
+import { openTaskDrawer } from './drawer.js?v=20261110-improvements';
+import { attachDragHandlers } from './dragdrop.js?v=20261110-improvements';
+import { clearDependencyFocus, focusDependencyTask, renderDependencyOverlay, selectDependencyTask } from './dependency-lines.js?v=20261110-improvements';
 
 function card(task) {
   const isUnassigned = !task.assignee;
@@ -20,31 +20,36 @@ function card(task) {
   const taskId = escapeHtml(task.id);
   const childPortHint = escapeHtml(t('childPortHint'));
   const parentPortHint = escapeHtml(t('parentPortHint'));
-  return `<article class="task-card ${task.status}${isUnassigned ? ' is-unassigned' : ''}" data-task-id="${taskId}" data-parent-count="${parents}" data-child-count="${children}" data-assignee-state="${isUnassigned ? 'missing' : 'assigned'}" tabindex="0">
+  return `<article class="task-card ${task.status}${isUnassigned ? ' is-unassigned' : ''}" data-task-id="${taskId}" data-task-status="${escapeHtml(task.status)}" data-parent-count="${parents}" data-child-count="${children}" data-assignee-state="${isUnassigned ? 'missing' : 'assigned'}" tabindex="0">
     <button type="button" class="dependency-port child-port" data-link-role="child" data-link-task-id="${taskId}" title="${childPortHint}" aria-label="${childPortHint}"><span>${escapeHtml(t('child'))}</span></button>
     <button type="button" class="dependency-port parent-port" data-link-role="parent" data-link-task-id="${taskId}" title="${parentPortHint}" aria-label="${parentPortHint}"><span>${escapeHtml(t('parent'))}</span></button>
     <div class="card-top"><code>${taskId}</code>${isUnassigned ? `<span class="profile-missing-badge" title="${assigneeHint}" aria-label="${assigneeHint}">⚠ ${escapeHtml(t('profileMissingShort'))}</span>` : ''}<span class="status-dot ${task.status}"></span></div>
     <h3>${escapeHtml(task.title)}</h3>
     ${task.body_preview ? `<p>${escapeHtml(task.body_preview)}</p>` : ''}
-    <div class="chips">${assigneeChip}${chips.map(x => `<span>${escapeHtml(x)}</span>`).join('')}${progress}${workflow}</div>
-    <div class="card-foot"><span>💬 ${task.comment_count || 0}</span><span class="relation-badge" title="parents ${parents} · children ${children}">↑ ${parents} ↓ ${children}</span>${task.status === 'running' ? '<strong>LIVE</strong>' : ''}</div>
+    <div class="chips">${task.status === 'triage' ? `<span class="triage-label">${escapeHtml(t('triage'))}</span>` : ''}${assigneeChip}${chips.map(x => `<span>${escapeHtml(x)}</span>`).join('')}${progress}${workflow}</div>
+    <div class="card-foot"><span>💬 ${task.comment_count || 0}</span><span class="relation-badge" title="parents ${parents} · children ${children}">↑ ${parents} ↓ ${children}</span>${task.status === 'running' ? '<strong>LIVE</strong>' : ''}<button type="button" class="mobile-move" data-mobile-move>${escapeHtml(t('moveTask'))}</button></div>
   </article>`;
 }
 
 export function renderKpis(data) {
   const root = document.getElementById('kpiRow');
   const stats = data.stats?.by_status || {};
-  const statuses = data.column_order || [];
+  const order = data.column_order || [];
+  const statuses = order.includes('todo') ? order.filter(status => status !== 'triage') : order;
   root.style.setProperty('--kpi-column-count', String(Math.max(1, statuses.length)));
-  root.innerHTML = statuses.map(status => `<div class="kpi"><small>${t(status)}</small><strong>${stats[status] || 0}</strong></div>`).join('');
+  root.innerHTML = statuses.map(status => {
+    const total = Number(stats[status] || 0) + (status === 'todo' && order.includes('triage') ? Number(stats.triage || 0) : 0);
+    return `<div class="kpi"><small>${t(status)}</small><strong>${total}</strong></div>`;
+  }).join('');
 }
 
 export function renderBoard(data) {
   const root = document.getElementById('board');
-  const statuses = data.column_order || [];
+  const order = data.column_order || [];
+  const statuses = order.includes('todo') ? order.filter(status => status !== 'triage') : order;
   root.style.setProperty('--kanban-column-count', String(Math.max(1, statuses.length)));
   root.innerHTML = statuses.map(status => {
-    const tasks = data.columns[status] || [];
+    const tasks = status === 'todo' ? [...(data.columns.triage || []), ...(data.columns.todo || [])] : (data.columns[status] || []);
     const reviewHint = status === 'review' ? `<small class="review-summary">${escapeHtml(t('reviewHint'))}</small>` : '';
     return `<section class="board-column${status === 'review' ? ' review-column' : ''}" data-status="${status}">
       <header><div><h2>${t(status)}</h2><small>${tasks.length}</small></div><button class="mini-add" data-status="${status}">＋</button></header>
@@ -62,8 +67,8 @@ export function renderBoard(data) {
     el.addEventListener('mouseleave', () => clearDependencyFocus(el.dataset.taskId));
     el.addEventListener('focus', () => focusDependencyTask(el.dataset.taskId));
     el.addEventListener('blur', () => clearDependencyFocus(el.dataset.taskId));
-    el.addEventListener('click', open);
-    el.addEventListener('keydown', ev => { if (ev.key === 'Enter') open(); });
+    el.addEventListener('click', ev => { if (!ev.target.closest('[data-mobile-move]')) open(); });
+    el.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target === el) open(); });
   });
   root.querySelectorAll('.mini-add').forEach(btn => btn.addEventListener('click', () => {
     document.dispatchEvent(new CustomEvent('kanban:open-task-create', { detail: { status: btn.dataset.status } }));

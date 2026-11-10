@@ -44,6 +44,15 @@ jobs:
       - name: Run tests
         run: uv run --extra test python -m pytest -q
 
+      - name: Build and verify installed package
+        run: |
+          uv build
+          uv venv "$RUNNER_TEMP/hermes-package"
+          uv pip install --python "$RUNNER_TEMP/hermes-package/bin/python" "$GITHUB_WORKSPACE"/dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/hermes-package/bin/hermes-kanban-webui" --help
+          "$RUNNER_TEMP/hermes-package/bin/python" -c 'from kanban_webui.config import PACKAGED_INSTALL, STATIC_DIR; from kanban_webui.app_update import get_update_status; assert PACKAGED_INSTALL and (STATIC_DIR / "index.html").is_file() and (STATIC_DIR / "attention.js").is_file(); assert not get_update_status()["enabled"]'
+
   static:
     name: Static assets and design tokens
     runs-on: ubuntu-latest

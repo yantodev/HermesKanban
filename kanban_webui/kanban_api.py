@@ -16,6 +16,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from functools import wraps
 
 from .hermes_imports import kanban_db
 from .serializers import comment_dict, event_dict, links_for, run_dict, task_dict
@@ -108,6 +109,17 @@ class WorkflowDraftCreateBody(BaseModel):
 
 class WorkflowDraftReviseBody(BaseModel):
     revision_prompt: str
+
+
+class WorkflowDraftStepEditBody(BaseModel):
+    key: str
+    assignee: Optional[str] = None
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class WorkflowDraftEditBody(BaseModel):
+    revision: int = Field(ge=1)
+    steps: list[WorkflowDraftStepEditBody]
 
 
 class WorkflowDraftInstantiateBody(BaseModel):
@@ -391,6 +403,23 @@ def _load_workflow_draft_for_board(settings: Settings, draft_id: str, board: str
     if draft.get("board") != board:
         raise HTTPException(status_code=404, detail=f"workflow draft {draft_id!r} not found")
     return draft
+
+
+def _locked_draft_mutation(function):
+    """Serialize revisions and apply across server processes for the same draft."""
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        draft_id = kwargs.get("draft_id") or (args[0] if args else None)
+        settings = get_settings()
+        try:
+            path = workflow_drafts.draft_json_path(settings, draft_id)
+        except workflow_drafts.DraftError:
+            return function(*args, **kwargs)
+        if not path.is_file():
+            return function(*args, **kwargs)
+        with workflow_drafts.lock_draft(settings, draft_id):
+            return function(*args, **kwargs)
+    return wrapped
 
 
 def _raise_not_applyable(draft: dict[str, Any]) -> None:
@@ -789,6 +818,7 @@ def get_workflow_draft(draft_id: str, board: Optional[str] = Query(None)) -> dic
 
 
 @router.post("/workflows/drafts/{draft_id}/revise")
+@_locked_draft_mutation
 def revise_workflow_draft(
     draft_id: str,
     payload: WorkflowDraftReviseBody,
@@ -838,7 +868,53 @@ def revise_workflow_draft(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.patch("/workflows/drafts/{draft_id}")
+@_locked_draft_mutation
+def edit_workflow_draft(
+    draft_id: str,
+    payload: WorkflowDraftEditBody,
+    board: Optional[str] = Query(None),
+) -> dict[str, Any]:
+    """Save a manually edited proposal after the same validation as AI revisions."""
+    selected = _resolve_board(board)
+    settings = get_settings()
+    draft = _load_workflow_draft_for_board(settings, draft_id, selected)
+    if draft.get("status") == "applied":
+        raise HTTPException(status_code=409, detail="applied workflow drafts cannot be edited")
+    if int(draft.get("revision") or 1) != payload.revision:
+        raise HTTPException(status_code=409, detail="draft revision changed; reload before editing")
+    profiles = draft.get("profiles") or []
+    proposal = dict(draft.get("proposal") or {})
+    original = {step["key"]: step for step in proposal.get("steps", [])}
+    submitted = [step.key for step in payload.steps]
+    if len(submitted) != len(set(submitted)) or set(submitted) != set(original):
+        raise HTTPException(status_code=422, detail="edited steps must contain each existing step exactly once")
+    available = set(workflow_drafts.profile_names(profiles))
+    if any(step.assignee and step.assignee not in available for step in payload.steps):
+        raise HTTPException(status_code=422, detail="assignee must be an available profile")
+    proposal["steps"] = [
+        {
+            **original[step.key],
+            "assignee": step.assignee,
+            "depends_on": step.depends_on,
+            "status": "triage" if original[step.key].get("status") == "triage" else ("todo" if step.depends_on else "ready"),
+        }
+        for step in payload.steps
+    ]
+    normalized, validation = workflow_drafts.normalize_proposal(
+        proposal,
+        available_profile_names=workflow_drafts.profile_names(profiles),
+        max_steps=int(draft.get("max_steps") or settings.workflow_max_steps),
+    )
+    _raise_proposal_errors(validation)
+    draft = workflow_drafts.append_revision(
+        settings, draft, revision_prompt="Manual edit", proposal=normalized, validation=validation,
+    )
+    return {"ok": True, "board": selected, "draft": draft, "profiles": profiles}
+
+
 @router.post("/workflows/drafts/{draft_id}/instantiate")
+@_locked_draft_mutation
 def instantiate_workflow_draft(
     draft_id: str,
     payload: WorkflowDraftInstantiateBody,

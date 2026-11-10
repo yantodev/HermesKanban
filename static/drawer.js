@@ -1,8 +1,8 @@
-import { api } from './api.js?v=20261109-pagination';
-import { t, applyI18n } from './i18n.js?v=20261109-pagination';
-import { renderMarkdown, escapeHtml } from './markdown.js?v=20261109-pagination';
-import { renderMonitor } from './monitor.js?v=20261109-pagination';
-import { state, toast } from './state.js?v=20261109-pagination';
+import { api } from './api.js?v=20261110-improvements';
+import { t, applyI18n } from './i18n.js?v=20261110-improvements';
+import { renderMarkdown, escapeHtml } from './markdown.js?v=20261110-improvements';
+import { renderMonitor } from './monitor.js?v=20261110-improvements';
+import { state, toast } from './state.js?v=20261110-improvements';
 
 export function closeDrawer() {
   const drawer = document.getElementById('drawer');
@@ -150,7 +150,7 @@ async function renderWorkerLog(taskId, root) {
   }
 }
 
-export async function openTaskDrawer(taskId) {
+export async function openTaskDrawer(taskId, options = {}) {
   state.selectedTaskId = taskId;
   document.dispatchEvent(new CustomEvent('kanban:dependency-selected', { detail: { taskId } }));
   const drawer = document.getElementById('drawer');
@@ -194,6 +194,7 @@ export async function openTaskDrawer(taskId) {
 
     <div class="drawer-actions">
       <button data-action="triage" data-status="triage" class="button ghost">→ triage</button>
+      <button data-action="todo" data-status="todo" class="button ghost">→ ${t('todo')}</button>
       <button data-action="ready" data-status="ready" class="button ghost">→ ready</button>
       <button data-action="block" data-status="blocked" class="button ghost">${t('block')}</button>
       <button data-action="review" data-status="review" class="button ghost">→ ${t('review')}</button>
@@ -335,4 +336,5 @@ export async function openTaskDrawer(taskId) {
   if (task.status === 'running' || task.current_run_id) {
     await renderMonitor(state.board, task.id, drawer.querySelector('#monitorMount'));
   }
+  if (options.section === 'log') drawer.querySelector('#workerLogContent')?.scrollIntoView({ block: 'center' });
 }

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+globalThis.localStorage = { getItem: () => null, setItem: () => {} };
+const { availableMoveStatuses, movePayload } = await import('../static/mobile.js?v=20261110-improvements');
+assert.deepEqual(availableMoveStatuses('triage'), ['todo', 'ready', 'archived']);
+assert.deepEqual(availableMoveStatuses('ready'), ['triage', 'todo', 'blocked', 'review', 'done', 'archived']);
+assert(!availableMoveStatuses('todo').includes('running'));
+assert(!availableMoveStatuses('todo').includes('done'));
+assert.deepEqual(movePayload('blocked', '  masalah  ', ''), { status: 'blocked', block_reason: 'masalah' });
+assert.deepEqual(movePayload('done', '', ' selesai '), { status: 'done', summary: 'selesai', result: 'selesai' });
+assert.deepEqual(movePayload('todo', '', ''), { status: 'todo' });

@@ -5,9 +5,11 @@ import json
 import re
 import secrets
 import time
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Iterable, Optional
+from filelock import FileLock
 
 from .config import Settings
 from .hermes_imports import kanban_db
@@ -48,6 +50,13 @@ def draft_dir(settings: Settings, draft_id: str) -> Path:
 
 def draft_json_path(settings: Settings, draft_id: str) -> Path:
     return draft_dir(settings, draft_id) / "draft.json"
+
+
+@contextmanager
+def lock_draft(settings: Settings, draft_id: str):
+    """Protect a draft's read-modify-write operations across server processes."""
+    with FileLock(str(draft_dir(settings, draft_id) / ".lock")):
+        yield
 
 
 def available_profiles(conn) -> list[dict[str, Any]]:

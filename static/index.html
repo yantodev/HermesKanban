@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/design-tokens.css?v=20261109-pagination" />
-  <link rel="stylesheet" href="/static/style.css?v=20261109-pagination" />
+  <link rel="stylesheet" href="/static/design-tokens.css?v=20261110-improvements" />
+  <link rel="stylesheet" href="/static/style.css?v=20261110-improvements" />
 </head>
 <body>
   <div class="app-shell">
@@ -71,6 +71,10 @@
         </div>
       </section>
 
+      <details class="attention-panel disclosure">
+        <summary><span data-i18n="attention">Perlu perhatian</span> <span id="attentionCount" class="muted" aria-live="polite"></span></summary>
+        <div id="attentionContent" class="attention-content"></div>
+      </details>
       <details class="board-overview disclosure">
         <summary><span data-i18n="boardsOverview">Daftar board</span> <span id="boardCardsCount" class="muted" aria-live="polite"></span></summary>
         <section class="board-cards-section" aria-label="boards"><div id="boardCards" class="board-cards" aria-live="polite"></div></section>
@@ -84,6 +88,19 @@
   <aside id="drawer" class="drawer" aria-hidden="true"></aside>
   <div id="overlay" class="overlay" hidden></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="moveDialog" class="modal move-modal" aria-labelledby="moveDialogTitle">
+    <form id="moveForm">
+      <h3 id="moveDialogTitle" data-i18n="moveTask">Pindahkan tugas</h3>
+      <p id="moveTaskTitle" class="muted"></p>
+      <label class="dialog-label"><span data-i18n="moveTo">Pindahkan ke</span><select id="moveStatus" name="status"></select></label>
+      <label class="dialog-label" id="moveReasonLabel" hidden><span data-i18n="moveReason">Alasan terblokir</span><textarea name="reason" rows="3"></textarea></label>
+      <label class="dialog-label" id="moveSummaryLabel" hidden><span data-i18n="moveSummary">Ringkasan penyelesaian</span><textarea name="summary" rows="3"></textarea></label>
+      <p id="moveArchiveWarning" class="muted" hidden data-i18n="moveArchiveWarning">Tugas akan dipindahkan ke arsip.</p>
+      <p id="moveError" class="move-error" role="alert" hidden></p>
+      <div class="modal-actions"><button class="button ghost" type="button" id="moveCancel" data-i18n="cancel">Batal</button><button class="button primary" type="submit" data-i18n="moveConfirm">Pindahkan</button></div>
+    </form>
+  </dialog>
 
   <dialog id="taskDialog" class="modal task-modal">
     <form id="taskCreateForm" method="dialog">
@@ -173,6 +190,6 @@ Task two"></textarea>
     </form>
   </dialog>
 
-  <script type="module" src="/static/app.js?v=20261109-pagination"></script>
+  <script type="module" src="/static/app.js?v=20261110-improvements"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
-import { api } from './api.js?v=20261109-pagination';
-import { t } from './i18n.js?v=20261109-pagination';
-import { escapeHtml } from './markdown.js?v=20261109-pagination';
-import { openTaskDrawer } from './drawer.js?v=20261109-pagination';
-import { state, toast } from './state.js?v=20261109-pagination';
+import { api } from './api.js?v=20261110-improvements';
+import { t } from './i18n.js?v=20261110-improvements';
+import { escapeHtml } from './markdown.js?v=20261110-improvements';
+import { openTaskDrawer } from './drawer.js?v=20261110-improvements';
+import { state, toast } from './state.js?v=20261110-improvements';
 
 function panel() { return document.getElementById('opsPanel'); }
 function toggleButton() { return document.getElementById('opsToggleBtn'); }
@@ -57,10 +57,11 @@ export function setupOperationsPanel() {
       nextButton?.focus();
       return;
     }
+    if (ev.target.closest('details')) return;
     const target = ev.target.closest('[data-ops-task-id]');
     if (!target) return;
     const taskId = target.dataset.opsTaskId;
-    if (taskId) openTaskDrawer(taskId);
+    if (taskId) openTaskDrawer(taskId, { section: target.dataset.opsView }).catch(err => toast(err.message || String(err), 'error'));
   });
 }
 
@@ -95,7 +96,6 @@ export function renderOperationsPanel(data) {
   el.innerHTML = `
     <div class="ops-header">
       <div>
-        <p class="eyebrow">${t('operations')}</p>
         <h2>${t('opsOverview')}</h2>
         <p class="muted">${escapeHtml(t('opsEstimatedBackoffAdvisory'))}</p>
       </div>
@@ -151,11 +151,12 @@ function renderRetryTable(items) {
       <td>${escapeHtml(task.assignee || t('unassigned'))}</td>
       <td>${escapeHtml(String(item.attempt || 0))}/${escapeHtml(String(item.max_retries || 0))}</td>
       <td>${escapeHtml(item.last_failure_kind || '—')}</td>
-      <td title="${escapeHtml(item.last_error || '')}">${escapeHtml(errorSummary(item))}</td>
+      <td>${errorDetails(item)}</td>
       <td><span class="ops-chip warning">${formatDuration(item.estimated_backoff_seconds)}</span> ${escapeHtml(stateLabel)}</td>
+      <td>${logButton(task.id)}</td>
     </tr>`;
   }).join('');
-  return section(t('opsRetryQueue'), items.length ? table(['Task', t('assignee'), t('opsAttempt'), 'Kind', t('opsLastError'), 'Estimated backoff'], rows) : empty(t('opsNoRetry')));
+  return section(t('opsRetryQueue'), items.length ? table(['Task', t('assignee'), t('opsAttempt'), 'Kind', t('opsLastError'), 'Estimated backoff', ''], rows) : empty(t('opsNoRetry')));
 }
 
 function renderBlockedAfterRetries(items) {
@@ -166,8 +167,8 @@ function renderBlockedAfterRetries(items) {
       <td>${taskLink(task)}</td>
       <td>${escapeHtml(String(item.attempt || 0))}/${escapeHtml(String(item.max_retries || 0))}</td>
       <td>${escapeHtml(item.last_failure_kind || '—')}</td>
-      <td title="${escapeHtml(item.last_error || '')}">${escapeHtml(errorSummary(item))}</td>
-      <td><button class="button ghost" type="button" data-ops-task-id="${escapeHtml(task.id || '')}">${t('opsOpenTask')}</button></td>
+      <td>${errorDetails(item)}</td>
+      <td><button class="button ghost" type="button" data-ops-task-id="${escapeHtml(task.id || '')}">${t('opsOpenTask')}</button> ${logButton(task.id)}</td>
     </tr>`;
   }).join('');
   return section(t('opsBlockedAfterRetries'), items.length ? table(['Task', t('opsAttempt'), 'Kind', t('opsLastError'), ''], rows) + pagination('blocked', page, t('opsBlockedAfterRetries')) : empty(t('opsNoBlockedAfterRetries')));
@@ -180,9 +181,10 @@ function renderRecentFailures(items) {
     <td>${escapeHtml(event.kind || '')}</td>
     <td><code>${escapeHtml(event.task_id || '')}</code></td>
     <td>${formatTimestamp(event.created_at)}</td>
-    <td>${escapeHtml(eventError(event))}</td>
+    <td>${errorDetails({ payload: event.payload, last_error: event.payload?.error || event.payload?.summary || event.payload?.reason })}</td>
+    <td>${logButton(event.task_id)}</td>
   </tr>`).join('');
-  return section(t('opsRecentFailures'), items.length ? `<p class="ops-table-note">${escapeHtml(t('opsRecentLimit'))}</p>` + table(['ID', 'Kind', 'Task', t('created'), t('opsLastError')], rows) + pagination('failures', page, t('opsRecentFailures')) : empty(t('opsNoFailures')));
+  return section(t('opsRecentFailures'), items.length ? `<p class="ops-table-note">${escapeHtml(t('opsRecentLimit'))}</p>` + table(['ID', 'Kind', 'Task', t('created'), t('opsLastError'), ''], rows) + pagination('failures', page, t('opsRecentFailures')) : empty(t('opsNoFailures')));
 }
 
 function section(title, body) {
@@ -199,6 +201,17 @@ function empty(message) {
 
 function taskLink(task) {
   return `<button class="ops-task-link" type="button" data-ops-task-id="${escapeHtml(task.id || '')}"><code>${escapeHtml(task.id || '')}</code><span>${escapeHtml(task.title || '')}</span></button>`;
+}
+
+function logButton(taskId) {
+  if (!taskId) return '';
+  return `<button class="button ghost ops-log-button" type="button" data-ops-task-id="${escapeHtml(taskId)}" data-ops-view="log">${escapeHtml(t('opsViewLog'))}</button>`;
+}
+
+function errorDetails(item) {
+  const text = String(item?.last_error || item?.payload?.error || item?.payload?.summary || '');
+  if (!text) return '—';
+  return `<details class="ops-error-detail"><summary>${escapeHtml(errorSummary(item))}</summary><pre>${escapeHtml(text)}</pre></details>`;
 }
 
 export function formatDuration(seconds) {
@@ -220,9 +233,4 @@ export function errorSummary(item) {
   const raw = item?.last_error || item?.payload?.error || item?.payload?.summary || '';
   const text = String(raw || '—');
   return text.length > 96 ? `${text.slice(0, 93)}…` : text;
-}
-
-function eventError(event) {
-  const payload = event.payload || {};
-  return errorSummary({ payload, last_error: payload.error || payload.summary || payload.reason || '' });
 }

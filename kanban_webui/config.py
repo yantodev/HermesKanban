@@ -85,4 +85,6 @@ def get_settings() -> Settings:
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-STATIC_DIR = ROOT_DIR / "static"
+PACKAGED_STATIC_DIR = Path(__file__).resolve().parent / "static"
+PACKAGED_INSTALL = PACKAGED_STATIC_DIR.is_dir()
+STATIC_DIR = PACKAGED_STATIC_DIR if PACKAGED_INSTALL else ROOT_DIR / "static"

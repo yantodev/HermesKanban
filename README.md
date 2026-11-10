@@ -57,14 +57,18 @@ Kanban data:
 - Task detail drawer with editable metadata/body, comments, events, runs,
   markdown rendering, dependency controls, home-channel notification toggles,
   and a Live Run Monitor for running tasks.
+- Mobile task move menu with supported status transitions and contextual
+  completion/blocking fields; an optional attention panel lists blocked,
+  unassigned, and review tasks matching the active board filters.
 - Global Operations panel for running tasks, heartbeat/claim health, retry
   candidates, blocked-after-retry failures, and recent failure events.
 - Dependency visualization on the board and task drawer, including focus/all/
   blocked/off display modes, so parent/child relationships are visible without
   leaving the browser.
 - Prompt-driven AI Workflow Designer: enter a goal plus optional text files,
-  review/revise the proposed task DAG, then apply it as normal Kanban tasks with
-  parent-child dependencies.
+  review/revise the proposed task DAG, manually change step display order,
+  profiles and dependencies, then apply it as normal Kanban tasks with
+  parent-child dependencies. Execution order follows dependencies.
 - Workflow draft storage, board-scoped draft APIs, immutable applied drafts, and
   backend guards that prevent non-applyable AI proposals from being applied.
 - Indonesian UI by default with an English toggle, plus light/dark themes.
@@ -117,6 +121,21 @@ uv run python server.py --host 127.0.0.1 --port 8790
 ```
 
 `uv run` creates/uses `.venv` automatically from `pyproject.toml`.
+
+For a foreground, isolated tool install from a local checkout:
+
+```bash
+uv tool install .
+hermes-kanban-webui --host 127.0.0.1 --port 8790
+```
+
+The installed tool still requires a compatible Hermes Agent checkout or an
+importable installation. Set `HERMES_AGENT_ROOT` if it cannot find that checkout.
+To update a tool installed from a local checkout, update the checkout first and
+run `uv tool install --force .` again. The in-app Git updater is disabled for
+packaged installations; use the tool's package manager to update them. The
+separate `hermes-kanban` lifecycle wrapper remains available through the
+clone-based installer.
 
 ## Configuration
 
@@ -272,7 +291,9 @@ Use **Create AI workflow** to turn a prompt into an editable workflow draft:
 2. Optionally attach text-like files (`.md`, `.txt`, source code, JSON/YAML/CSV).
 3. Click **Plan** to let a Hermes planner profile generate a task DAG.
 4. Review warnings/questions, step bodies, assignees, and dependencies.
-5. Use a revision prompt if needed, then click **Apply**.
+5. Adjust profiles, dependencies, or display order and save the changes, or use
+   a revision prompt. Execution follows the dependency graph, not display order.
+6. Click **Apply**.
 
 Applying a draft creates normal Kanban tasks and `task_links`; it does not auto-dispatch workers. Root steps become ready, dependent steps stay todo until their parents finish. Applied drafts are immutable; create a new draft to change an already-applied workflow.
 
@@ -302,6 +323,12 @@ The old built-in workflow template API is deprecated and returns `410 Gone`; pro
 - `GET /api/events` and `GET /api/events/stream`
 - `POST /api/workflows/drafts`
 - `GET /api/workflows/drafts/{draft_id}`
+- `PATCH /api/workflows/drafts/{draft_id}` saves a manual revision: send
+  `revision` and `steps` containing every existing step exactly once, each with
+  `key`, `assignee`, and `depends_on`. The server validates profiles and the
+  dependency graph, preserves the proposal's applyability decision, and returns
+  `409` for an applied or stale draft and `422` for invalid edits. Revision and
+  apply operations are serialized per draft across server processes.
 - `POST /api/workflows/drafts/{draft_id}/revise`
 - `POST /api/workflows/drafts/{draft_id}/instantiate`
 - `GET /api/workflows/instances/{instance_id}`
@@ -368,21 +395,12 @@ The `Release` GitHub Actions workflow creates the GitHub Release from the
 matching `CHANGELOG.md` section. You can also run the workflow manually with a
 `tag` input when a release tag already exists.
 
-## Installable package roadmap
+## Package distribution
 
-The current supported distribution mode is clone-and-run. That is the safest
-mode while KanbanWebUI depends on a local Hermes Agent checkout and serves
-static assets directly from the repository.
-
-To support `uv tool install` or `pipx install`, the project should next:
-
-1. Move or package `static/` as Python package data.
-2. Add a console entry point such as `hermes-kanban-webui`.
-3. Update `kanban_webui.config.STATIC_DIR` to resolve packaged resources via
-   `importlib.resources` instead of assuming a repo checkout.
-4. Decide how to depend on Hermes Agent: PyPI package, git dependency, or
-   explicit `HERMES_AGENT_ROOT` requirement.
-5. Add a build check such as `uv build` to CI.
+The wheel contains the static assets and exposes `hermes-kanban-webui` as a
+foreground command. Hermes Agent remains an external dependency: install it
+separately or point `HERMES_AGENT_ROOT` to a compatible checkout. Clone-based
+installs retain their existing lifecycle and Git-based update commands.
 
 ## Public distribution checklist
 
@@ -393,11 +411,6 @@ Completed:
 - `CHANGELOG.md` and GitHub release-note configuration.
 - GitHub Release automation plus the published `v0.1.0` release.
 - `main` branch is available for default-branch based installs and updates.
-
-Still optional/future:
-
-- Packaged install path/entry point if you want `pipx install` or `uv tool`
-  usage instead of clone-and-run.
 
 ## Deferred
 
